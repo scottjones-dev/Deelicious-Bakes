@@ -14,8 +14,8 @@ export function ReviewPhotoUploader({ onPhotosUploaded }: ReviewPhotoProps) {
   const [isCompressing, setIsCompressing] = useState(false);
 
   return (
-    <div className="rounded-lg border border-neutral-200 p-4 bg-white shadow-sm">
-      <label className="block text-sm font-medium text-neutral-700 mb-2">
+    <div className="rounded-lg border border-border p-4 bg-card shadow-sm">
+      <label className="block text-sm font-medium text-muted-foreground mb-3 font-heading">
         {isCompressing ? "Optimizing photo quality..." : "Add photos of your delivery or custom cake!"}
       </label>
 
@@ -61,13 +61,14 @@ export function ReviewPhotoUploader({ onPhotosUploaded }: ReviewPhotoProps) {
           mode: "auto",
         }}
         disabled={isCompressing}
+        className="ut-button:bg-primary ut-button:ut-readying:bg-primary/70 ut-button:ut-uploading:bg-primary/50 ut-label:text-primary"
       />
 
       {/* Grid Previews */}
       {uploadedImages.length > 0 && (
         <div className="mt-4 grid grid-cols-4 gap-2">
           {uploadedImages.map((url, idx) => (
-            <div key={idx} className="relative aspect-square w-full overflow-hidden rounded-md border bg-neutral-50">
+            <div key={idx} className="relative aspect-square w-full overflow-hidden rounded-md border border-border bg-muted/10">
               <Image
                 src={url}
                 alt={`Uploaded product preview review number ${idx}`}

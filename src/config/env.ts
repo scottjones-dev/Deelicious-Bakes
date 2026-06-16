@@ -26,6 +26,8 @@ const envSchema = z.object({
 
   NEXT_PUBLIC_UMAMI_WEBSITE_ID: z.string().optional(),
   TRUSTED_ORIGINS: z.string().optional(),
+
+  TRIGGER_SECRET_KEY: z.string().optional(),
 });
 
 // Determine if we are executing on the client side (browser)

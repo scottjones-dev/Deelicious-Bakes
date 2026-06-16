@@ -3,17 +3,17 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db";
 import { siteConfig } from "@/config/site";
 import { env } from "@/config/env";
-import { account, session, user as userTable, verification } from "@/db/schema/auth"; 
+import { account, session, user as userTable, verification } from "@/db/schema/auth";
 import { admin, anonymous } from "better-auth/plugins";
-import { eq } from "drizzle-orm"; 
-import { stripe } from "@/lib/stripe"; 
+import { tasks } from "@trigger.dev/sdk/v3";
 import { resend } from "@/lib/resend";
-import { sendWelcomeEmail, sendVerificationEmail, sendForgotPasswordEmail } from "@/lib/emails";
+import { sendVerificationEmail, sendForgotPasswordEmail } from "@/lib/emails";
 
-const isDevelopment = process.env.NODE_ENV === "development";
+const isDevelopment = env.NODE_ENV === "development";
 const domainArray = env.TRUSTED_ORIGINS?.split(",") || [];
 
 export const auth = betterAuth({
+    secret: env.BETTER_AUTH_SECRET,
     account: {
         accountLinking: {
             allowDifferentEmails: true,
@@ -32,7 +32,7 @@ export const auth = betterAuth({
     },
     appName: siteConfig.name,
     basePath: "/api/auth",
-    baseURL: siteConfig.url,
+    baseURL: env.BETTER_AUTH_URL,
     database: drizzleAdapter(db, {
         provider: "pg",
         schema: {
@@ -48,10 +48,11 @@ export const auth = betterAuth({
         async onPasswordReset(data, request) {
             console.log("Password reset link requested for confirmation context.");
         },
+
         requireEmailVerification: true,
         resetPasswordTokenExpiresIn: 60 * 60 * 1000,
         revokeSessionsOnPasswordReset: true,
-        
+
         // 🔒 Fires instantly when a password reset transaction is started!
         async sendResetPassword(data, request) {
             await sendForgotPasswordEmail({
@@ -63,57 +64,26 @@ export const auth = betterAuth({
     },
     emailVerification: {
         autoSignInAfterVerification: true,
-        enabled: true,
-        requireEmailVerification: true,
-
         // ✉️ Fires on initial sign up or whenever a new verification sequence triggers!
         async sendVerificationEmail(data, request) {
             await sendVerificationEmail({
                 to: data.user.email,
                 customerName: data.user.name,
-                verificationUrl: data.url, // Better-Auth passes down the auto-generated email callback check link
+                verificationUrl: data.url,
             });
         },
-
+        sendOnSignIn: true,
         // 🎉 Triggers automatically when they click the token URL inside the email!
         async afterEmailVerification(user, request) {
-            console.log("🎉 User verified email. Running global synchronization pipelines...");
+            console.log(`📡 Triggering background sync for ${user.email}`);
 
-            try {
-                // 1. Create matching profile inside Stripe
-                const stripeCustomer = await stripe.customers.create({
-                    email: user.email,
-                    name: user.name,
-                    metadata: { dbUserId: user.id },
-                });
-
-                // 2. Map Stripe identifier to user record row in Postgres
-                await db.update(userTable)
-                    .set({ stripeCustomerId: stripeCustomer.id })
-                    .where(eq(userTable.id, user.id));
-
-                // 3. Sync to Resend Audiences Marketing Contacts
-                if (env.RESEND_AUDIENCE_ID) {
-                    const [firstName = "", lastName = ""] = user.name.split(" ");
-                    await resend.contacts.create({
-                        audienceId: env.RESEND_AUDIENCE_ID,
-                        email: user.email,
-                        firstName,
-                        lastName,
-                        unsubscribed: false,
-                    });
-                }
-
-                // 4. Dispatch the Gourmet Welcome Confirmation Layout
-                await sendWelcomeEmail({ 
-                    to: user.email, 
-                    customerName: user.name 
-                });
-
-                console.log(`✅ Sync complete for ${user.email}. DB, Resend, and Stripe are unified.`);
-            } catch (error) {
-                console.error("❌ Failed to complete background syncing operations:", error);
-            }
+            await tasks.trigger("sync-user-on-verification", {
+                userId: user.id,
+                email: user.email,
+                name: user.name,
+                // @ts-ignore - marketingConsent is an additionalField
+                marketingConsent: user.marketingConsent === true,
+            });
         },
     },
     logger: {
@@ -143,6 +113,16 @@ export const auth = betterAuth({
         return [env.NEXT_PUBLIC_APP_URL];
     },
     user: {
+        additionalFields: {
+            marketingConsent: {
+                type: "boolean",
+                defaultValue: false,
+            },
+            stripeCustomerId: {
+                type: "string",
+
+            }
+        },
         changeEmail: { enabled: false },
         deleteUser: {
             enabled: true,

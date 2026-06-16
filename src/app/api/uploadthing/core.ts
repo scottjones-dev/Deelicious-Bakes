@@ -49,6 +49,21 @@ export const ourFileRouter = {
       console.log("High-res product asset processed for admin:", metadata.adminId);
       return { uploadedBy: metadata.adminId, url: file.ufsUrl };
     }),
+
+  // 3. Custom Order Attachment Endpoint (Supports sketches, inspiration, and PDFs)
+  customOrderUploader: f({
+    image: { maxFileSize: "16MB", maxFileCount: 4 },
+    pdf: { maxFileSize: "16MB", maxFileCount: 2 },
+  })
+    .middleware(async ({ req }) => {
+      const sessionData = await auth.api.getSession({ headers: await headers() });
+      const user = sessionData?.user;
+      if (!user) throw new UploadThingError("Unauthorized");
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      return { uploadedBy: metadata.userId, url: file.ufsUrl };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

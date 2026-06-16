@@ -1,0 +1,20 @@
+import { Metadata } from "next";
+import { SigninForm } from "@/components/auth/sign-in-form";
+import { Signature } from "@/components/ui/typography";
+
+export const metadata: Metadata = {
+    title: "Sign In | Dee-licious Bakes",
+};
+
+export default function SignInPage() {
+    return (
+        <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10 bg-background">
+            <div className="flex w-full max-w-sm flex-col gap-6">
+                <div className="flex items-center justify-center gap-2 py-6">
+                    <Signature className="text-primary text-5xl">Deelicious Bakes</Signature>
+                </div>
+                <SigninForm />
+            </div>
+        </div>
+    );
+}

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { env } from "@/config/env";
 import { Html, Head, Preview, Body, Container, Font } from "react-email";
 import { theme } from "./theme";
 import { EmailFooter } from "./email-footer"; // Import updated footer
@@ -9,9 +10,7 @@ interface EmailLayoutProps {
   children: React.ReactNode;
 }
 
-const BASE_URL = process.env.NODE_ENV === "production" 
-  ? "https://your-production-domain.com" 
-  : "http://localhost:3000";
+const BASE_URL = env.NEXT_PUBLIC_APP_URL;
 
 export const EmailLayout = ({ previewText, unsubscribeUrl, children }: EmailLayoutProps) => {
   return (

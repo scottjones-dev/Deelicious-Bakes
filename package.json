@@ -15,6 +15,7 @@
     "db:studio": "drizzle-kit studio",
     "auth:generate": "bun x auth@latest generate --config ./src/lib/auth.ts --output ./src/db/schema/auth.ts -y",
     "email:dev": "email dev --dir src/emails --port 4000",
+    "trigger:dev": "bun x trigger.dev@latest dev",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/webhooks/stripe"
   },
   "dependencies": {
@@ -22,6 +23,7 @@
     "@neondatabase/serverless": "^1.1.0",
     "@react-email/editor": "^1.5.5",
     "@sentry/nextjs": "10",
+    "@trigger.dev/sdk": "4.4.6",
     "@uploadthing/react": "^7.3.3",
     "better-auth": "^1.6.18",
     "browser-image-compression": "^2.0.2",
@@ -58,6 +60,7 @@
     "@biomejs/biome": "2.2.0",
     "@react-email/ui": "6.6.1",
     "@tailwindcss/postcss": "^4",
+    "@trigger.dev/build": "4.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

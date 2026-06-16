@@ -13,17 +13,18 @@ export async function proxy(request: NextRequest) {
 
     // --- PATHWAY A: AUTHENTICATED GUEST PROTECTION ---
     // If a logged-in user tries to manually visit sign-in or register, kick them back out to home
-    const authRoutes = ["/sign-in", "/register"];
+    const authRoutes = ["/sign-in", "/sign-up"];
     if (session && authRoutes.some((route) => pathname.startsWith(route))) {
         url.pathname = "/";
         return NextResponse.redirect(url);
     }
 
-    // --- PATHWAY B: PROTECTED CHECKOUT ENGINE ---
-    // If a visitor tries to view checkout without an account session, force-route them to authenticate
-    if (!session && pathname.startsWith("/checkout")) {
+    // --- PATHWAY B: PROTECTED CUSTOMER PIPELINE ---
+    // If a visitor tries to view account or checkout without a session, force-route them to authenticate
+    const protectedRoutes = ["/account", "/checkout"];
+    if (!session && protectedRoutes.some((route) => pathname.startsWith(route))) {
         url.pathname = "/sign-in";
-        // Optional: Pass the target path along so they return directly to checkout after completing login
+        // Pass the target path along so they return directly after completing login
         url.searchParams.set("callbackUrl", request.url);
         return NextResponse.redirect(url);
     }
@@ -44,9 +45,10 @@ export async function proxy(request: NextRequest) {
 // Global Matcher Config to catch any core workflows without matching static system asset files
 export const config = {
     matcher: [
+        "/account/:path*",
         "/checkout/:path*",
         "/admin/:path*",
         "/sign-in",
-        "/register"
+        "/sign-up"
     ],
 };

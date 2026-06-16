@@ -1,6 +1,7 @@
 import * as React from "react";
-import { Text, Link, Section } from "react-email";
+import { Text, Section } from "react-email";
 import { EmailLayout } from "./_components/email-layout";
+import { EmailButton } from "./_components/email-button";
 import { theme } from "./_components/theme";
 
 interface ResetPasswordProps {
@@ -39,23 +40,9 @@ export const ResetPassword = ({
       </Text>
 
       <Section style={{ margin: "24px 0" }}>
-        <Link
-          href={resetUrl}
-          style={{
-            backgroundColor: theme.colors.accent,
-            color: "#2e150c",
-            fontFamily: theme.fonts.sans,
-            fontSize: "15px",
-            fontWeight: "bold",
-            textDecoration: "none",
-            textAlign: "center" as const,
-            display: "inline-block",
-            padding: "12px 24px",
-            borderRadius: theme.radius.md,
-          }}
-        >
+        <EmailButton href={resetUrl}>
           Reset My Password
-        </Link>
+        </EmailButton>
       </Section>
 
       <Text style={{

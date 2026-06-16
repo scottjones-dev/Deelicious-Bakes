@@ -1,5 +1,5 @@
 import * as React from "react";
-// 📦 Keeping the correct, verified react-email v6 unified package import
+import { env } from "@/config/env";
 import { Section, Text, Hr } from "react-email";
 import { theme } from "./theme";
 
@@ -9,9 +9,7 @@ interface EmailFooterProps {
 
 export const EmailFooter = ({ unsubscribeUrl }: EmailFooterProps) => {
   // Fallback link pointing to your user profile settings if a specific token link isn't provided
-  const fallbackUrl = process.env.NODE_ENV === "production"
-    ? "https://your-production-domain.com/settings/billing"
-    : "http://localhost:3000/settings/billing";
+  const fallbackUrl = `${env.NEXT_PUBLIC_APP_URL}/settings/billing`;
 
   const targetUrl = unsubscribeUrl || fallbackUrl;
 
