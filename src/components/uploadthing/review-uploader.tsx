@@ -1,0 +1,83 @@
+"use client";
+
+import { useState } from "react";
+import { UploadButton } from "@/utils/uploadthing";
+import Image from "next/image";
+import imageCompression from "browser-image-compression";
+
+interface ReviewPhotoProps {
+  onPhotosUploaded: (urls: string[]) => void;
+}
+
+export function ReviewPhotoUploader({ onPhotosUploaded }: ReviewPhotoProps) {
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isCompressing, setIsCompressing] = useState(false);
+
+  return (
+    <div className="rounded-lg border border-neutral-200 p-4 bg-white shadow-sm">
+      <label className="block text-sm font-medium text-neutral-700 mb-2">
+        {isCompressing ? "Optimizing photo quality..." : "Add photos of your delivery or custom cake!"}
+      </label>
+
+      <UploadButton
+        endpoint="imageUploader"
+        onBeforeUploadBegin={async (files) => {
+          setIsCompressing(true);
+          try {
+            const compressionOptions = {
+              maxSizeMB: 1.5,
+              maxWidthOrHeight: 1920,
+              useWebWorker: true,
+            };
+
+            const compressedFiles = await Promise.all(
+              files.map(async (file) => {
+                try {
+                  const compressedBlob = await imageCompression(file, compressionOptions);
+
+                  return new File([compressedBlob], file.name, { type: file.type });
+                } catch (err) {
+                  console.error("Compression error on file:", file.name, err);
+                  return file;
+                }
+              })
+            );
+
+            return compressedFiles;
+          } finally {
+            setIsCompressing(false);
+          }
+        }}
+        onClientUploadComplete={(res) => {
+          const urls = res.map((file) => file.ufsUrl);
+          const combined = [...uploadedImages, ...urls];
+          setUploadedImages(combined);
+          onPhotosUploaded(combined);
+        }}
+        onUploadError={(error: Error) => {
+          alert(`Could not attach review image: ${error.message}`);
+        }}
+        config={{
+          mode: "auto",
+        }}
+        disabled={isCompressing}
+      />
+
+      {/* Grid Previews */}
+      {uploadedImages.length > 0 && (
+        <div className="mt-4 grid grid-cols-4 gap-2">
+          {uploadedImages.map((url, idx) => (
+            <div key={idx} className="relative aspect-square w-full overflow-hidden rounded-md border bg-neutral-50">
+              <Image
+                src={url}
+                alt={`Uploaded product preview review number ${idx}`}
+                fill
+                className="object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

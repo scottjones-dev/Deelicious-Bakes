@@ -1,7 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "../styles/globals.css";
 import { brittanySignature } from "./fonts";
+import { cn } from "@/lib/utils";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "sonner";
+import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
+import { ThemeProvider } from "@/components/ui/theme-provider";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "./api/uploadthing/core";
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,12 +34,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${brittanySignature.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      suppressHydrationWarning
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={cn("h-full", "antialiased", brittanySignature.variable, geistSans.variable, geistMono.variable, "font-sans", inter.variable)} suppressHydrationWarning>
+      <body className="min-h-full flex flex-col">
+        <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <TooltipProvider>
+            {children}
+            <Toaster closeButton expand position="bottom-right" richColors />
+            <TailwindIndicator />
+          </TooltipProvider>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

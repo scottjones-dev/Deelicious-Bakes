@@ -1,27 +1,192 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* Core Base Properties */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-signature: var(--font-brittany-signature);
-  --font-sans: var(--font-geist-sans);
+  
+  /* Typography Signatures mapped to your brand requirements */
+  --font-sans: var(--font-sans), Arial, Helvetica, sans-serif;
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-heading), Georgia, serif;
+  --font-signature: var(--font-brittany-signature), "Great Vibes", cursive;
+
+  /* Surface / Container Variables */
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* Primary Brand Definitions (Extracts from Dee-licious Bakes Flyer) */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  /* Borders & Focus Systems */
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+
+  /* Custom Charts (Pastel Dessert & Confectionery Palette) */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Interactive Component Sidebars */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Structural Border Radii */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* BASE CANVASES */
+  --background: oklch(0.98 0.01 85); /* Warm Luxury Cream (#faf6f0) */
+  --foreground: oklch(0.22 0.03 45); /* Gourmet Dark Chocolate Text (#3d1d11) */
+
+  /* CONTAINERS & CARDS */
+  --card: oklch(0.99 0.005 85);
+  --card-foreground: oklch(0.22 0.03 45);
+  --popover: oklch(0.99 0.005 85);
+  --popover-foreground: oklch(0.22 0.03 45);
+
+  /* BRAND LIGHT SPECIFICS */
+  --primary: oklch(0.62 0.11 25); /* Bakery Rose / Blush Accent Accentuation (#bc7c6c) */
+  --primary-foreground: oklch(0.98 0.01 85);
+  
+  --secondary: oklch(0.91 0.02 75); /* Creamy Muted Sand Tint (#e3d5ca) */
+  --secondary-foreground: oklch(0.22 0.03 45);
+
+  --muted: oklch(0.91 0.02 75);
+  --muted-foreground: oklch(0.48 0.04 55); /* Earthy Cocoa Shadow Tint (#8c766c) */
+
+  --accent: oklch(0.72 0.13 60); /* Artisanal Rich Caramel Dripping (#d49a6a) */
+  --accent-foreground: oklch(0.22 0.03 45);
+
+  /* BORDERS & RINGS */
+  --border: oklch(0.88 0.02 75);
+  --input: oklch(0.88 0.02 75);
+  --ring: oklch(0.62 0.11 25);
+  --radius: 0.625rem;
+
+  /* DESTRUCTIVE STATE */
+  --destructive: oklch(0.55 0.18 25);
+
+  /* DESSERT CONFECTIONERY CHART PALETTE */
+  --chart-1: oklch(0.62 0.11 25);  /* Rose */
+  --chart-2: oklch(0.72 0.13 60);  /* Caramel */
+  --chart-3: oklch(0.45 0.08 40);  /* Milk Chocolate */
+  --chart-4: oklch(0.88 0.05 85);  /* Sweet Vanilla */
+  --chart-5: oklch(0.30 0.05 30);  /* Dark Cocoa */
+
+  /* COMPONENT SIDEBARS */
+  --sidebar: oklch(0.99 0.005 85);
+  --sidebar-foreground: oklch(0.22 0.03 45);
+  --sidebar-primary: oklch(0.62 0.11 25);
+  --sidebar-primary-foreground: oklch(0.98 0.01 85);
+  --sidebar-accent: oklch(0.91 0.02 75);
+  --sidebar-accent-foreground: oklch(0.22 0.03 45);
+  --sidebar-border: oklch(0.88 0.02 75);
+  --sidebar-ring: oklch(0.62 0.11 25);
+}
+
+.dark {
+  /* BASE CANVASES */
+  --background: oklch(0.15 0.01 35); /* Deep Cocoa Obsidian (#171210) - Text pops beautifully */
+  --foreground: oklch(0.98 0.01 85); /* Warm Cream Text */
+
+  /* CONTAINERS & CARDS */
+  --card: oklch(0.18 0.01 35);
+  --card-foreground: oklch(0.98 0.01 85);
+  --popover: oklch(0.18 0.01 35);
+  --popover-foreground: oklch(0.98 0.01 85);
+
+  /* BRAND DARK SPECIFICS */
+  --primary: oklch(0.70 0.10 25); /* Lighter Brightened Blush for High Dark Contrast */
+  --primary-foreground: oklch(0.15 0.01 35);
+  
+  --secondary: oklch(0.22 0.02 35);
+  --secondary-foreground: oklch(0.98 0.01 85);
+
+  --muted: oklch(0.22 0.02 35);
+  --muted-foreground: oklch(0.70 0.03 65);
+
+  --accent: oklch(0.75 0.12 60); /* Radiant Warm Caramel */
+  --accent-foreground: oklch(0.15 0.01 35);
+
+  /* BORDERS & RINGS */
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.70 0.10 25);
+
+  /* DESTRUCTIVE STATE */
+  --destructive: oklch(0.62 0.19 25);
+
+  /* CHART INVERSIONS */
+  --chart-1: oklch(0.70 0.10 25);
+  --chart-2: oklch(0.75 0.12 60);
+  --chart-3: oklch(0.60 0.06 45);
+  --chart-4: oklch(0.50 0.04 35);
+  --chart-5: oklch(0.35 0.03 30);
+
+  /* COMPONENT SIDEBARS */
+  --sidebar: oklch(0.18 0.01 35);
+  --sidebar-foreground: oklch(0.98 0.01 85);
+  --sidebar-primary: oklch(0.70 0.10 25);
+  --sidebar-primary-foreground: oklch(0.15 0.01 35);
+  --sidebar-accent: oklch(0.22 0.02 35);
+  --sidebar-accent-foreground: oklch(0.98 0.01 85);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.70 0.10 25);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-signature), Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+  }
+  html {
+    @apply font-sans scroll-smooth;
+  }
+  
+  /* Precision Editorial Header Adjustments */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-wide text-foreground/95;
+  }
+  
+  /* Custom Global Component Rules for Dee-licious Bakes */
+  .signature-text {
+    @apply font-signature italic normal-case tracking-normal text-primary;
+  }
+  
+  .badge-caption {
+    @apply text-xs uppercase tracking-widest font-sans text-muted-foreground font-medium;
+  }
 }
