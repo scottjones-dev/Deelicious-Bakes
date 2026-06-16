@@ -3,8 +3,12 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db";
 import { siteConfig } from "@/config/site";
 import { env } from "@/config/env";
-import { account, session, user, verification } from "@/db/schema/auth";
+import { account, session, user as userTable, verification } from "@/db/schema/auth"; 
 import { admin, anonymous } from "better-auth/plugins";
+import { eq } from "drizzle-orm"; 
+import { stripe } from "@/lib/stripe"; 
+import { resend } from "@/lib/resend";
+import { sendWelcomeEmail, sendVerificationEmail, sendForgotPasswordEmail } from "@/lib/emails";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 const domainArray = env.TRUSTED_ORIGINS?.split(",") || [];
@@ -16,8 +20,7 @@ export const auth = betterAuth({
             allowUnlinkingAll: true,
             enabled: true,
             trustedProviders() {
-                // Implement your logic to determine trusted providers here
-                return ["email-password", "facebook", "google", "microsoft",];
+                return ["email-password", "facebook", "google", "microsoft"];
             },
             updateUserInfoOnLink: true,
         },
@@ -35,7 +38,7 @@ export const auth = betterAuth({
         schema: {
             account: account,
             session: session,
-            user: user,
+            user: userTable,
             verification: verification,
         },
     }),
@@ -43,83 +46,96 @@ export const auth = betterAuth({
         autoSignIn: false,
         enabled: true,
         async onPasswordReset(data, request) {
-            // Handle password reset logic here 
-            // Send Email Later
-            console.log("Password reset requested for:", data.user.email);
+            console.log("Password reset link requested for confirmation context.");
         },
         requireEmailVerification: true,
-        resetPasswordTokenExpiresIn: 60 * 60 * 1000, // 1 hour
+        resetPasswordTokenExpiresIn: 60 * 60 * 1000,
         revokeSessionsOnPasswordReset: true,
+        
+        // 🔒 Fires instantly when a password reset transaction is started!
         async sendResetPassword(data, request) {
-            // Implement your email sending logic here
-            console.log("Sending password reset email to:", data.user.email);
+            await sendForgotPasswordEmail({
+                to: data.user.email,
+                customerName: data.user.name,
+                resetUrl: data.url, // Better-Auth passes down the complete localized reset endpoint token string automatically
+            });
         },
     },
     emailVerification: {
-        async afterEmailVerification(user, request) {
-            // Implement your logic after email verification here
-            // send email welcome email
-            console.log("Email verified for user:", user.email);
-        },
         autoSignInAfterVerification: true,
         enabled: true,
-        expiresIn: 60 * 60 * 1000, // 1 hour
-        sendOnSignIn: true,
-        sendOnSignUp: true,
         requireEmailVerification: true,
+
+        // ✉️ Fires on initial sign up or whenever a new verification sequence triggers!
         async sendVerificationEmail(data, request) {
-            // Implement your email sending logic here
-            // send email Email Verification email telling them to verify their email but expires in 1 hour
-            console.log("Sending verification email to:", data.user.email);
+            await sendVerificationEmail({
+                to: data.user.email,
+                customerName: data.user.name,
+                verificationUrl: data.url, // Better-Auth passes down the auto-generated email callback check link
+            });
+        },
+
+        // 🎉 Triggers automatically when they click the token URL inside the email!
+        async afterEmailVerification(user, request) {
+            console.log("🎉 User verified email. Running global synchronization pipelines...");
+
+            try {
+                // 1. Create matching profile inside Stripe
+                const stripeCustomer = await stripe.customers.create({
+                    email: user.email,
+                    name: user.name,
+                    metadata: { dbUserId: user.id },
+                });
+
+                // 2. Map Stripe identifier to user record row in Postgres
+                await db.update(userTable)
+                    .set({ stripeCustomerId: stripeCustomer.id })
+                    .where(eq(userTable.id, user.id));
+
+                // 3. Sync to Resend Audiences Marketing Contacts
+                if (env.RESEND_AUDIENCE_ID) {
+                    const [firstName = "", lastName = ""] = user.name.split(" ");
+                    await resend.contacts.create({
+                        audienceId: env.RESEND_AUDIENCE_ID,
+                        email: user.email,
+                        firstName,
+                        lastName,
+                        unsubscribed: false,
+                    });
+                }
+
+                // 4. Dispatch the Gourmet Welcome Confirmation Layout
+                await sendWelcomeEmail({ 
+                    to: user.email, 
+                    customerName: user.name 
+                });
+
+                console.log(`✅ Sync complete for ${user.email}. DB, Resend, and Stripe are unified.`);
+            } catch (error) {
+                console.error("❌ Failed to complete background syncing operations:", error);
+            }
         },
     },
     logger: {
         level: "debug",
         log(level, message, ...args) {
-            // Implement your logging logic here
             console.log(`[${level.toUpperCase()}] ${message}`, ...args);
         },
     },
     onAPIError: {
         onError(error, ctx) {
-            // Implement your error handling logic here
             console.error("API Error:", error);
         },
         throw: true,
     },
-    plugins: [
-        admin(),
-        anonymous()
-    ],
+    plugins: [admin(), anonymous()],
     rateLimit: {
         enabled: true,
         max: 100,
-        window: 60 * 1000, // 1 minute
+        window: 60 * 1000,
     },
-    socialProviders: {
-        facebook: {
-            clientId: process.env.FACEBOOK_CLIENT_ID || "",
-            clientSecret: process.env.FACEBOOK_CLIENT_SECRET || "",
-            enabled: true,
-            fields: ["id", "email", "name", "first_name", "last_name", "picture"],
-            scope: ["email", "public_profile"],
-        },
-        google: {
-            clientId: process.env.GOOGLE_CLIENT_ID || "",
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-            enabled: true,
-            scope: ["openid", "email", "profile"],
-        },
-        microsoft: {
-            clientId: process.env.MICROSOFT_CLIENT_ID || "",
-            clientSecret: process.env.MICROSOFT_CLIENT_SECRET || "",
-            enabled: true,
-            scope: ["User.Read"],
-        },
-    },
-    telemetry: {
-        enabled: false,
-    },
+    socialProviders: {},
+    telemetry: { enabled: false },
     trustedOrigins: async () => {
         if (isDevelopment) {
             return ["http://localhost:5173", ...domainArray];
@@ -127,24 +143,27 @@ export const auth = betterAuth({
         return [env.NEXT_PUBLIC_APP_URL];
     },
     user: {
-        changeEmail: {
-            enabled: false,
-        },
+        changeEmail: { enabled: false },
         deleteUser: {
             enabled: true,
             async afterDelete(user, request) {
-                // Implement your logic after user deletion here
                 console.log("User deleted:", user.email);
-                // Emails last time sorry to see you go
+                if (env.RESEND_AUDIENCE_ID) {
+                    try {
+                        await resend.contacts.remove({
+                            audienceId: env.RESEND_AUDIENCE_ID,
+                            email: user.email,
+                        });
+                    } catch (err) {
+                        console.error("Failed to remove contact on deletion:", err);
+                    }
+                }
             },
             async beforeDelete(user, request) {
-                // Implement your logic before user deletion here
-                // check if user has any pending transactions or is admin and prevent deletion if so
                 console.log("Before deleting user:", user.email);
             },
-            deleteTokenExpiresIn: 60 * 60 * 1000, // 1 hour
+            deleteTokenExpiresIn: 60 * 60 * 1000,
             async sendDeleteAccountVerification(data, request) {
-                // Implement your email sending logic here
                 console.log("Sending account deletion verification email to:", data.user.email);
             },
         }

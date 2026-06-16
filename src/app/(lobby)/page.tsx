@@ -10,7 +10,7 @@ export default function Home() {
         {/* Brand mark */}
         <div className="flex flex-col items-center gap-4">
           <Signature className="text-6xl md:text-7xl text-primary">
-            Dee-licious Bakes
+            Deelicious Bakes
           </Signature>
 
           <P className="text-xs tracking-widest uppercase text-muted-foreground font-medium">
