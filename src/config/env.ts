@@ -6,9 +6,15 @@ const envSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
 
-  DATABASE_URL: z.string().min(1),
+  DATABASE_URL: z
+    .string()
+    .min(1)
+    .default("postgresql://mock_user:mock_pass@localhost:5432/mock_db"),
 
-  BETTER_AUTH_SECRET: z.string().min(1),
+  BETTER_AUTH_SECRET: z
+    .string()
+    .min(1)
+    .default("mock-secret-key-for-compilation-verification-only"),
   BETTER_AUTH_URL: z.url().default("http://localhost:3000"),
   ADMIN_EMAIL: z.email().optional(),
 
