@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm"
+import { relations } from "drizzle-orm";
 import {
   decimal,
   index,
@@ -7,12 +7,12 @@ import {
   text,
   timestamp,
   varchar,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { generateId } from "@/utils/id"
+import { generateId } from "@/utils/id";
 
-import { orders } from "./orders"
-import { lifecycleDates } from "./utils"
+import { orders } from "./orders";
+import { lifecycleDates } from "./utils";
 
 export const paymentStatusEnum = pgEnum("payment_status", [
   "requires_payment_method",
@@ -22,7 +22,7 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "refunded",
   "partially_refunded",
   "canceled",
-])
+]);
 
 export const payments = pgTable(
   "payments",
@@ -53,15 +53,15 @@ export const payments = pgTable(
   },
   (table) => ({
     orderIdIdx: index("payments_order_id_idx").on(table.orderId),
-    stripePaymentIntentIdIdx: index(
-      "payments_stripe_payment_intent_id_idx"
-    ).on(table.stripePaymentIntentId),
-  })
-)
+    stripePaymentIntentIdIdx: index("payments_stripe_payment_intent_id_idx").on(
+      table.stripePaymentIntentId,
+    ),
+  }),
+);
 
 export const paymentsRelations = relations(payments, ({ one }) => ({
   order: one(orders, { fields: [payments.orderId], references: [orders.id] }),
-}))
+}));
 
-export type Payment = typeof payments.$inferSelect
-export type NewPayment = typeof payments.$inferInsert
+export type Payment = typeof payments.$inferSelect;
+export type NewPayment = typeof payments.$inferInsert;

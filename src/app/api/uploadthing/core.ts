@@ -9,14 +9,16 @@ export const ourFileRouter = {
   // 1. Standard Customer Endpoints (Avatars, Reviews, etc.)
   imageUploader: f({
     image: {
-      // Increased to 32MB to seamlessly allow massive iPhone ProRAW/48MP files 
+      // Increased to 32MB to seamlessly allow massive iPhone ProRAW/48MP files
       // before your client-side worker compresses them down.
-      maxFileSize: "32MB", 
-      maxFileCount: 4, 
+      maxFileSize: "32MB",
+      maxFileCount: 4,
     },
   })
     .middleware(async ({ req }) => {
-      const sessionData = await auth.api.getSession({ headers: await headers() });
+      const sessionData = await auth.api.getSession({
+        headers: await headers(),
+      });
       const user = sessionData?.user;
       if (!user) throw new UploadThingError("Unauthorized");
       return { userId: user.id };
@@ -29,12 +31,14 @@ export const ourFileRouter = {
   adminProductUploader: f({
     image: {
       // Massive roof limit specifically for your heavy, uncompressed DSLR or asset dumps
-      maxFileSize: "64MB", 
+      maxFileSize: "64MB",
       maxFileCount: 6, // Allows up to 6 angles per product/listing
     },
   })
     .middleware(async ({ req }) => {
-      const sessionData = await auth.api.getSession({ headers: await headers() });
+      const sessionData = await auth.api.getSession({
+        headers: await headers(),
+      });
       const user = sessionData?.user;
 
       // Guard: Ensure user is logged in
@@ -46,7 +50,10 @@ export const ourFileRouter = {
       return { adminId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log("High-res product asset processed for admin:", metadata.adminId);
+      console.log(
+        "High-res product asset processed for admin:",
+        metadata.adminId,
+      );
       return { uploadedBy: metadata.adminId, url: file.ufsUrl };
     }),
 
@@ -56,7 +63,9 @@ export const ourFileRouter = {
     pdf: { maxFileSize: "16MB", maxFileCount: 2 },
   })
     .middleware(async ({ req }) => {
-      const sessionData = await auth.api.getSession({ headers: await headers() });
+      const sessionData = await auth.api.getSession({
+        headers: await headers(),
+      });
       const user = sessionData?.user;
       if (!user) throw new UploadThingError("Unauthorized");
       return { userId: user.id };

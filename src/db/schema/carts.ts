@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm"
+import { relations } from "drizzle-orm";
 import {
   index,
   json,
@@ -7,21 +7,21 @@ import {
   text,
   timestamp,
   varchar,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { generateId } from "@/utils/id"
-import { type CartItemSchema } from "@/lib/validations/cart"
+import { generateId } from "@/utils/id";
+import { type CartItemSchema } from "@/lib/validations/cart";
 
-import { customers } from "./customers"
-import { orders } from "./orders"
-import { lifecycleDates } from "./utils"
+import { customers } from "./customers";
+import { orders } from "./orders";
+import { lifecycleDates } from "./utils";
 
 export const cartStatusEnum = pgEnum("cart_status", [
   "active",
   "abandoned",
   "converted",
   "expired",
-])
+]);
 
 export const carts = pgTable(
   "carts",
@@ -31,7 +31,7 @@ export const carts = pgTable(
       .primaryKey(), // prefix_ + nanoid (12)
     customerId: varchar("customer_id", { length: 30 }).references(
       () => customers.id,
-      { onDelete: "cascade" }
+      { onDelete: "cascade" },
     ), // null until checkout / sign-in
     guestToken: varchar("guest_token", { length: 64 }).unique(), // anonymous cookie id
     email: text("email"), // captured early in checkout, used for abandoned-cart recovery
@@ -52,8 +52,8 @@ export const carts = pgTable(
     guestTokenIdx: index("carts_guest_token_idx").on(table.guestToken),
     statusIdx: index("carts_status_idx").on(table.status),
     expiresAtIdx: index("carts_expires_at_idx").on(table.expiresAt),
-  })
-)
+  }),
+);
 
 export const cartsRelations = relations(carts, ({ one }) => ({
   customer: one(customers, {
@@ -64,7 +64,7 @@ export const cartsRelations = relations(carts, ({ one }) => ({
     fields: [carts.convertedOrderId],
     references: [orders.id],
   }),
-}))
+}));
 
-export type Cart = typeof carts.$inferSelect
-export type NewCart = typeof carts.$inferInsert
+export type Cart = typeof carts.$inferSelect;
+export type NewCart = typeof carts.$inferInsert;

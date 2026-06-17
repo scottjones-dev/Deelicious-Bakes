@@ -194,7 +194,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                   <Cake className="h-5 w-5" />
                 </div>
                 {!isCollapsed && (
-                  <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="flex flex-col gap-0.5 min-w-0 py-8">
                     <span className="font-signature text-2xl text-primary font-bold leading-none select-none">
                       Deelicious Bakes
                     </span>

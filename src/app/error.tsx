@@ -20,9 +20,7 @@ export default function ErrorPage({ error, reset }: ErrorBoundaryProps) {
   return (
     <main className="flex min-h-screen items-center justify-center px-6">
       <div className="max-w-md text-center">
-        <p className="font-signature text-5xl text-primary">
-          Deelicious Bakes
-        </p>
+        <p className="font-signature text-5xl text-primary">Deelicious Bakes</p>
 
         <h1 className="mt-6 text-4xl font-semibold tracking-tight">
           Something Went Wrong

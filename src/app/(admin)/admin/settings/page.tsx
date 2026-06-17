@@ -145,7 +145,7 @@ export default function AdminSettingsPage() {
                     className="flex items-start gap-2.5 p-2 rounded-lg bg-muted/30 border border-border/40"
                   >
                     <div className="h-4 w-4 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="h-2.5 w-2.5 stroke-[3]" />
+                      <Check className="h-2.5 w-2.5 stroke-3" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">

@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { createProduct } from "@/app/actions/admin";
+import { createProduct } from "@/app/actions/product";
 import { Button } from "@/components/ui/button";
 import {
   Card,

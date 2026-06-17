@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      env.STRIPE_WEBHOOK_SECRET!
+      env.STRIPE_WEBHOOK_SECRET!,
     );
   } catch (err: any) {
     console.error(`❌ Webhook signature verification failed: ${err.message}`);
@@ -35,12 +35,15 @@ export async function POST(req: Request) {
     const cartId = session.metadata?.cartId;
 
     if (orderId) {
-      console.log(`💰 Stripe Checkout session completed. Syncing order: ${orderId}`);
+      console.log(
+        `💰 Stripe Checkout session completed. Syncing order: ${orderId}`,
+      );
 
       try {
         await db.transaction(async (tx) => {
           // 1. Update Order Status to "Paid"
-          await tx.update(orders)
+          await tx
+            .update(orders)
             .set({
               status: "paid",
               stripePaymentIntentId: session.payment_intent as string,
@@ -60,7 +63,8 @@ export async function POST(req: Request) {
 
           // 3. Mark Cart as "Converted"
           if (cartId) {
-            await tx.update(carts)
+            await tx
+              .update(carts)
               .set({
                 status: "converted",
                 convertedOrderId: orderId,
@@ -69,7 +73,10 @@ export async function POST(req: Request) {
           }
 
           // 4. Update Stock Levels (Decrement)
-          const orderItemsList = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+          const orderItemsList = await tx
+            .select()
+            .from(orderItems)
+            .where(eq(orderItems.orderId, orderId));
 
           for (const item of orderItemsList) {
             if (item.productVariantId) {
@@ -81,7 +88,8 @@ export async function POST(req: Request) {
                 const newQuantity = currentStock.quantity - item.quantity;
 
                 // Update stock volume
-                await tx.update(stocks)
+                await tx
+                  .update(stocks)
                   .set({ quantity: newQuantity })
                   .where(eq(stocks.id, currentStock.id));
 
@@ -106,16 +114,27 @@ export async function POST(req: Request) {
           const { tasks } = await import("@trigger.dev/sdk/v3");
           await tasks.trigger("send-order-placed-email", { orderId });
         } else {
-          console.log("⏭️ Skipping task trigger during build environment verification.");
+          console.log(
+            "⏭️ Skipping task trigger during build environment verification.",
+          );
         }
 
-        console.log(`✅ Order ${orderId} successfully locked, paid, and stocked.`);
+        console.log(
+          `✅ Order ${orderId} successfully locked, paid, and stocked.`,
+        );
       } catch (dbError) {
-        console.error(`❌ Transaction failed during webhook order fulfillment for order ${orderId}:`, dbError);
-        return new NextResponse("Internal database transaction error", { status: 500 });
+        console.error(
+          `❌ Transaction failed during webhook order fulfillment for order ${orderId}:`,
+          dbError,
+        );
+        return new NextResponse("Internal database transaction error", {
+          status: 500,
+        });
       }
     } else {
-      console.warn("⚠️ Checkout session completed, but metadata does not contain orderId.");
+      console.warn(
+        "⚠️ Checkout session completed, but metadata does not contain orderId.",
+      );
     }
   }
 

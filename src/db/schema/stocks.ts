@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm"
+import { relations } from "drizzle-orm";
 import {
   index,
   integer,
@@ -6,13 +6,13 @@ import {
   pgTable,
   text,
   varchar,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { generateId } from "@/utils/id"
+import { generateId } from "@/utils/id";
 
-import { orders } from "./orders"
-import { lifecycleDates } from "./utils"
-import { productVariants } from "./variants"
+import { orders } from "./orders";
+import { lifecycleDates } from "./utils";
+import { productVariants } from "./variants";
 
 export const stocks = pgTable(
   "stocks",
@@ -30,10 +30,10 @@ export const stocks = pgTable(
   },
   (table) => ({
     productVariantIdIdx: index("stocks_product_variant_id_idx").on(
-      table.productVariantId
+      table.productVariantId,
     ),
-  })
-)
+  }),
+);
 
 export const stocksRelations = relations(stocks, ({ one, many }) => ({
   productVariant: one(productVariants, {
@@ -41,10 +41,10 @@ export const stocksRelations = relations(stocks, ({ one, many }) => ({
     references: [productVariants.id],
   }),
   movements: many(stockMovements),
-}))
+}));
 
-export type Stock = typeof stocks.$inferSelect
-export type NewStock = typeof stocks.$inferInsert
+export type Stock = typeof stocks.$inferSelect;
+export type NewStock = typeof stocks.$inferInsert;
 
 export const stockMovementTypeEnum = pgEnum("stock_movement_type", [
   "restock",
@@ -52,7 +52,7 @@ export const stockMovementTypeEnum = pgEnum("stock_movement_type", [
   "adjustment",
   "return",
   "correction",
-])
+]);
 
 // immutable audit trail of every stock change
 export const stockMovements = pgTable(
@@ -76,22 +76,19 @@ export const stockMovements = pgTable(
   (table) => ({
     stockIdIdx: index("stock_movements_stock_id_idx").on(table.stockId),
     orderIdIdx: index("stock_movements_order_id_idx").on(table.orderId),
-  })
-)
+  }),
+);
 
-export const stockMovementsRelations = relations(
-  stockMovements,
-  ({ one }) => ({
-    stock: one(stocks, {
-      fields: [stockMovements.stockId],
-      references: [stocks.id],
-    }),
-    order: one(orders, {
-      fields: [stockMovements.orderId],
-      references: [orders.id],
-    }),
-  })
-)
+export const stockMovementsRelations = relations(stockMovements, ({ one }) => ({
+  stock: one(stocks, {
+    fields: [stockMovements.stockId],
+    references: [stocks.id],
+  }),
+  order: one(orders, {
+    fields: [stockMovements.orderId],
+    references: [orders.id],
+  }),
+}));
 
-export type StockMovement = typeof stockMovements.$inferSelect
-export type NewStockMovement = typeof stockMovements.$inferInsert
+export type StockMovement = typeof stockMovements.$inferSelect;
+export type NewStockMovement = typeof stockMovements.$inferInsert;

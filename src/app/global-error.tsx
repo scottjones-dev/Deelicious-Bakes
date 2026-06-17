@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import type { ErrorBoundaryProps } from "@/types/error";
 
 export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
-
   useEffect(() => {
     Sentry.captureException(error);
   }, [error]);

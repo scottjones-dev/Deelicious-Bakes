@@ -12,7 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { updateReviewStatusAction } from "@/app/actions/admin";
+import { updateReviewStatusAction } from "@/app/actions/reviews";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

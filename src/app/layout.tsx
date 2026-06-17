@@ -16,7 +16,7 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: {
@@ -24,7 +24,14 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  keywords: ["bakery", "cakes", "salisbury", "custom cakes", "cookies", "cupcakes"],
+  keywords: [
+    "bakery",
+    "cakes",
+    "salisbury",
+    "custom cakes",
+    "cookies",
+    "cupcakes",
+  ],
   authors: [{ name: "Deelicious Bakes" }],
   creator: "Deelicious Bakes",
   metadataBase: new URL(siteConfig.url),
@@ -61,7 +68,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("h-full", brittanySignature.variable, inter.variable, "font-sans")} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={cn(
+        "h-full",
+        brittanySignature.variable,
+        inter.variable,
+        "font-sans",
+      )}
+      suppressHydrationWarning
+    >
       <head>
         {env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
           <Script
@@ -72,7 +88,12 @@ export default function RootLayout({
         )}
       </head>
       <body className="min-h-full flex flex-col">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
           <TooltipProvider>
             <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
             {children}

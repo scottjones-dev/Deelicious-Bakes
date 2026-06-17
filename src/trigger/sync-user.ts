@@ -31,14 +31,18 @@ export const syncUserToStripe = task({
       scope.setTag("task", "sync-user-to-stripe");
 
       // 1. Stripe Customer Creation (Idempotent)
-      const stripeCustomer = await stripe.customers.create({
-        email: payload.email,
-        name: payload.name,
-        metadata: { dbUserId: payload.userId },
-      }, { idempotencyKey: `stripe_cust_${payload.userId}` });
+      const stripeCustomer = await stripe.customers.create(
+        {
+          email: payload.email,
+          name: payload.name,
+          metadata: { dbUserId: payload.userId },
+        },
+        { idempotencyKey: `stripe_cust_${payload.userId}` },
+      );
 
       // 2. Sync to local Auth User Table
-      await db.update(userTable)
+      await db
+        .update(userTable)
         .set({ stripeCustomerId: stripeCustomer.id })
         .where(eq(userTable.id, payload.userId));
 
@@ -48,7 +52,8 @@ export const syncUserToStripe = task({
       });
 
       if (existingCustomer) {
-        await db.update(customers)
+        await db
+          .update(customers)
           .set({
             userId: payload.userId,
             stripeCustomerId: stripeCustomer.id,
@@ -90,7 +95,7 @@ export const syncUserToResend = task({
       scope.setTag("task", "sync-user-to-resend");
 
       const [firstName = "", lastName = ""] = payload.name.split(" ");
-      
+
       try {
         await resend.contacts.create({
           audienceId,
@@ -129,9 +134,9 @@ export const triggerWelcomeEmail = task({
     factor: 1.5,
   },
   run: async (payload: { email: string; name: string }) => {
-    await sendWelcomeEmail({ 
-      to: payload.email, 
-      customerName: payload.name 
+    await sendWelcomeEmail({
+      to: payload.email,
+      customerName: payload.name,
     });
     return { sent: true };
   },
@@ -167,20 +172,24 @@ export const dailyUserIntegritySync = schedules.task({
 
       try {
         const allUsers = await db.select().from(userTable);
-        
+
         console.log(`📡 Starting daily sync for ${allUsers.length} users...`);
 
         for (const user of allUsers) {
           try {
             // A. Ensure Stripe Customer exists
             if (!user.stripeCustomerId) {
-              const stripeCustomer = await stripe.customers.create({
-                email: user.email,
-                name: user.name,
-                metadata: { dbUserId: user.id },
-              }, { idempotencyKey: `sync-${user.id}` });
+              const stripeCustomer = await stripe.customers.create(
+                {
+                  email: user.email,
+                  name: user.name,
+                  metadata: { dbUserId: user.id },
+                },
+                { idempotencyKey: `sync-${user.id}` },
+              );
 
-              await db.update(userTable)
+              await db
+                .update(userTable)
                 .set({ stripeCustomerId: stripeCustomer.id })
                 .where(eq(userTable.id, user.id));
             }
@@ -188,7 +197,7 @@ export const dailyUserIntegritySync = schedules.task({
             // B. Sync to Resend Audience
             if (env.RESEND_AUDIENCE_ID) {
               const [firstName = "", lastName = ""] = user.name.split(" ");
-              
+
               try {
                 await resend.contacts.create({
                   audienceId: env.RESEND_AUDIENCE_ID,

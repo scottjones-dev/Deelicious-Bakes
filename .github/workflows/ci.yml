@@ -1,0 +1,112 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint:
+    name: Lint & Code Style
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run Biome Linter
+        run: bun run lint
+
+  typecheck:
+    name: Type Safety Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run TypeScript Compiler Check
+        run: bun x tsc --noEmit
+
+  build:
+    name: Next.js Compile Build
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Compile Next.js App
+        run: bun run build
+        env:
+          # Inject mock env variables for compilation safety
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          DATABASE_URL: postgres://mock_user:mock_pass@localhost:5432/mock_db
+          BETTER_AUTH_SECRET: mock-secret-key-for-compilation-verification-only
+          BETTER_AUTH_URL: http://localhost:3000
+          ADMIN_EMAIL: admin@deeliciousbakes.co.uk
+          TRUSTED_ORIGINS: http://localhost:3000
+          RESEND_API_KEY: re_mockapikeyforci
+          EMAIL_FROM_ADDRESS: hello@deeliciousbakes.co.uk
+          RESEND_AUDIENCE_ID: mock-audience-id
+          RESEND_WEBHOOK_SECRET: mock-webhook-secret
+          UPLOADTHING_TOKEN: mock-uploadthing-token
+          UPSTASH_REDIS_REST_URL: https://mock.upstash.io
+          UPSTASH_REDIS_REST_TOKEN: mock_token
+          UPSTASH_SEARCH_REST_READONLY_TOKEN: mock_readonly_token
+          UPSTASH_SEARCH_REST_TOKEN: mock_search_token
+          UPSTASH_SEARCH_REST_URL: https://mock-search.upstash.io
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_mockkey
+          STRIPE_SECRET_KEY: sk_test_mockkey
+          STRIPE_WEBHOOK_SECRET: whsec_mockkey
+          TRIGGER_SECRET_KEY: tr_mockkey
+          NEXT_PUBLIC_SENTRY_DSN: https://mock@mock.ingest.sentry.io/mock
+          SENTRY_AUTH_TOKEN: mock-sentry-token
+          NODE_ENV: production
+
+  deploy-trigger:
+    name: Deploy Trigger.dev Tasks
+    runs-on: ubuntu-latest
+    needs: build
+    # Only run on branch pushes (not PRs) to master or main
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: 🚀 Deploy Trigger.dev Tasks
+        env:
+          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+        run: |
+          bun x trigger.dev@latest deploy

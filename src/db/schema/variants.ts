@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm"
+import { relations } from "drizzle-orm";
 import {
   boolean,
   decimal,
@@ -8,13 +8,13 @@ import {
   text,
   unique,
   varchar,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { generateId } from "@/utils/id"
+import { generateId } from "@/utils/id";
 
-import { products } from "./products"
-import { stocks } from "./stocks"
-import { lifecycleDates } from "./utils"
+import { products } from "./products";
+import { stocks } from "./stocks";
+import { lifecycleDates } from "./utils";
 
 // a purchasable, sellable unit of a product
 // e.g. "Box of 6" / "Box of 12" / "Box of 24", or "Small" / "Medium" / "Large"
@@ -36,15 +36,13 @@ export const productVariants = pgTable(
     ...lifecycleDates,
   },
   (table) => ({
-    productIdIdx: index("product_variants_product_id_idx").on(
-      table.productId
-    ),
+    productIdIdx: index("product_variants_product_id_idx").on(table.productId),
     productNameUnique: unique("product_variants_product_id_name_unique").on(
       table.productId,
-      table.name
+      table.name,
     ),
-  })
-)
+  }),
+);
 
 export const productVariantsRelations = relations(
   productVariants,
@@ -57,8 +55,8 @@ export const productVariantsRelations = relations(
       fields: [productVariants.id],
       references: [stocks.productVariantId],
     }),
-  })
-)
+  }),
+);
 
-export type ProductVariant = typeof productVariants.$inferSelect
-export type NewProductVariant = typeof productVariants.$inferInsert
+export type ProductVariant = typeof productVariants.$inferSelect;
+export type NewProductVariant = typeof productVariants.$inferInsert;

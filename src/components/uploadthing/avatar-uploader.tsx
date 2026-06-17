@@ -10,15 +10,20 @@ interface AvatarProps {
   fallbackName: string;
 }
 
-export function UserAvatarUploader({ currentImage, fallbackName }: AvatarProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(currentImage || null);
-  
+export function UserAvatarUploader({
+  currentImage,
+  fallbackName,
+}: AvatarProps) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    currentImage || null,
+  );
+
   const { startUpload, isUploading } = useUploadThing("imageUploader", {
     onClientUploadComplete: async (res) => {
       const newUrl = res?.[0]?.ufsUrl; // Using modern ufsUrl property
       if (newUrl) {
         setPreviewUrl(newUrl);
-        
+
         // FIX: Call the direct root updater pattern from the Better Auth specification
         await authClient.updateUser({
           image: newUrl,
@@ -63,7 +68,7 @@ export function UserAvatarUploader({ currentImage, fallbackName }: AvatarProps) 
             {fallbackName.slice(0, 2)}
           </div>
         )}
-        
+
         <div className="absolute inset-0 flex items-center justify-center bg-background/60 opacity-0 transition group-hover:opacity-100">
           <p className="text-xs font-medium text-foreground">
             {isUploading ? "Uploading..." : "Change"}
