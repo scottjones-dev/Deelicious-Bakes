@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "drizzle-kit push --force && next build",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
@@ -25,6 +25,7 @@
     "@sentry/nextjs": "10",
     "@trigger.dev/sdk": "4.4.6",
     "@uploadthing/react": "^7.3.3",
+    "@upstash/search": "^0.1.7",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "better-auth": "^1.6.18",

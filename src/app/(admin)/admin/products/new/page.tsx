@@ -143,7 +143,7 @@ export default function AdminNewProductPage() {
           </Card>
 
           {/* Food Safety, Ingredients & Allergens (Natasha's Law Compliant) */}
-          <Card className="border border-rose-500/20 bg-rose-500/[0.02]">
+          <Card className="border border-rose-500/20 bg-rose-500/2">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <ShieldAlert className="h-5 w-5 text-rose-500" />
