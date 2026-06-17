@@ -1,18 +1,18 @@
+import { tasks } from "@trigger.dev/sdk/v3";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "@/db";
-import { siteConfig } from "@/config/site";
+import { admin, anonymous } from "better-auth/plugins";
 import { env } from "@/config/env";
+import { siteConfig } from "@/config/site";
+import { db } from "@/db";
 import {
   account,
   session,
   user as userTable,
   verification,
 } from "@/db/schema/auth";
-import { admin, anonymous } from "better-auth/plugins";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { sendForgotPasswordEmail, sendVerificationEmail } from "@/lib/emails";
 import { resend } from "@/lib/resend";
-import { sendVerificationEmail, sendForgotPasswordEmail } from "@/lib/emails";
 
 const isDevelopment = env.NODE_ENV === "development";
 const domainArray = env.TRUSTED_ORIGINS?.split(",") || [];
@@ -50,7 +50,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     autoSignIn: false,
     enabled: true,
-    async onPasswordReset(data, request) {
+    async onPasswordReset(_data, _request) {
       console.log("Password reset link requested for confirmation context.");
     },
 
@@ -59,7 +59,7 @@ export const auth = betterAuth({
     revokeSessionsOnPasswordReset: true,
 
     // 🔒 Fires instantly when a password reset transaction is started!
-    async sendResetPassword(data, request) {
+    async sendResetPassword(data, _request) {
       await sendForgotPasswordEmail({
         to: data.user.email,
         customerName: data.user.name,
@@ -70,7 +70,7 @@ export const auth = betterAuth({
   emailVerification: {
     autoSignInAfterVerification: true,
     // ✉️ Fires on initial sign up or whenever a new verification sequence triggers!
-    async sendVerificationEmail(data, request) {
+    async sendVerificationEmail(data, _request) {
       await sendVerificationEmail({
         to: data.user.email,
         customerName: data.user.name,
@@ -79,14 +79,14 @@ export const auth = betterAuth({
     },
     sendOnSignIn: true,
     // 🎉 Triggers automatically when they click the token URL inside the email!
-    async afterEmailVerification(user, request) {
+    async afterEmailVerification(user, _request) {
       console.log(`📡 Triggering background sync for ${user.email}`);
 
       await tasks.trigger("sync-user-on-verification", {
         userId: user.id,
         email: user.email,
         name: user.name,
-        // @ts-ignore - marketingConsent is an additionalField
+        // @ts-expect-error - marketingConsent is an additionalField
         marketingConsent: user.marketingConsent === true,
       });
     },
@@ -98,7 +98,7 @@ export const auth = betterAuth({
     },
   },
   onAPIError: {
-    onError(error, ctx) {
+    onError(error, _ctx) {
       console.error("API Error:", error);
     },
     throw: true,
@@ -130,7 +130,7 @@ export const auth = betterAuth({
     changeEmail: { enabled: false },
     deleteUser: {
       enabled: true,
-      async afterDelete(user, request) {
+      async afterDelete(user, _request) {
         console.log("User deleted:", user.email);
         if (env.RESEND_AUDIENCE_ID) {
           try {
@@ -143,11 +143,11 @@ export const auth = betterAuth({
           }
         }
       },
-      async beforeDelete(user, request) {
+      async beforeDelete(user, _request) {
         console.log("Before deleting user:", user.email);
       },
       deleteTokenExpiresIn: 60 * 60 * 1000,
-      async sendDeleteAccountVerification(data, request) {
+      async sendDeleteAccountVerification(data, _request) {
         console.log(
           "Sending account deletion verification email to:",
           data.user.email,

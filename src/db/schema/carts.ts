@@ -8,9 +8,8 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
-
+import type { CartItemSchema } from "@/lib/validations/cart";
 import { generateId } from "@/utils/id";
-import { type CartItemSchema } from "@/lib/validations/cart";
 
 import { customers } from "./customers";
 import { orders } from "./orders";

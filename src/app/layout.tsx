@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "../styles/globals.css";
-import { brittanySignature } from "./fonts";
-import { cn } from "@/lib/utils";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "sonner";
-import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
-import { ThemeProvider } from "@/components/ui/theme-provider";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
-import { extractRouterConfig } from "uploadthing/server";
-import { ourFileRouter } from "./api/uploadthing/core";
-import { siteConfig } from "@/config/site";
-import { env } from "@/config/env";
-import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import Script from "next/script";
+import { Toaster } from "sonner";
+import { extractRouterConfig } from "uploadthing/server";
+import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
+import { ThemeProvider } from "@/components/ui/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { env } from "@/config/env";
+import { siteConfig } from "@/config/site";
+import { cn } from "@/lib/utils";
+import { ourFileRouter } from "./api/uploadthing/core";
+import { brittanySignature } from "./fonts";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 

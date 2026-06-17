@@ -1,13 +1,13 @@
-import { task, schedules } from "@trigger.dev/sdk/v3";
-import { stripe } from "@/lib/stripe";
-import { resend } from "@/lib/resend";
+import * as Sentry from "@sentry/nextjs";
+import { schedules, task } from "@trigger.dev/sdk/v3";
+import { eq } from "drizzle-orm";
+import { env } from "@/config/env";
 import { db } from "@/db";
 import { user as userTable } from "@/db/schema/auth";
 import { customers } from "@/db/schema/customers";
-import { eq } from "drizzle-orm";
 import { sendWelcomeEmail } from "@/lib/emails";
-import { env } from "@/config/env";
-import * as Sentry from "@sentry/nextjs";
+import { resend } from "@/lib/resend";
+import { stripe } from "@/lib/stripe";
 
 interface SyncUserPayload {
   userId: string;
@@ -206,7 +206,7 @@ export const dailyUserIntegritySync = schedules.task({
                   lastName,
                   unsubscribed: !user.marketingConsent,
                 });
-              } catch (resendError: any) {
+              } catch (_resendError: any) {
                 await resend.contacts.update({
                   audienceId: env.RESEND_AUDIENCE_ID,
                   email: user.email,

@@ -1,13 +1,10 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Loader2, MailCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -15,7 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { H3, P } from "@/components/ui/typography";
 import { authClient } from "@/lib/auth-client";
 
@@ -46,7 +46,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
       email,
       password,
       name,
-      // @ts-ignore
+      // @ts-expect-error
       marketingConsent,
       callbackURL: "/account",
     });

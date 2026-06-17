@@ -1,6 +1,5 @@
-import * as React from "react";
+import { Hr, Section, Text } from "react-email";
 import { env } from "@/config/env";
-import { Section, Text, Hr } from "react-email";
 import { theme } from "./theme";
 
 interface EmailFooterProps {

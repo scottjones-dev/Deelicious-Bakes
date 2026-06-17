@@ -1,9 +1,9 @@
 "use server";
 
-import { db } from "@/db";
-import { categories, products } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { db } from "@/db";
+import { categories, products } from "@/db/schema";
 
 export async function createCategory(data: {
   name: string;

@@ -1,13 +1,5 @@
-import React from "react";
-import {
-  Megaphone,
-  Sparkles,
-  Mail,
-  Share2,
-  Calendar,
-  ArrowUpRight,
-  ShieldAlert,
-} from "lucide-react";
+import { ArrowUpRight, Calendar, Mail, Share2, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -15,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 export default function MarketingPage() {
   return (

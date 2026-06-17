@@ -1,9 +1,9 @@
 "use server";
 
-import { db } from "@/db";
-import { customers, reviews } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { db } from "@/db";
+import { customers, reviews } from "@/db/schema";
 
 export async function submitReviewAction(
   productId: string,

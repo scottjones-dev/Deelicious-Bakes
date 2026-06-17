@@ -1,12 +1,10 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 
 import { filterProducts } from "@/app/actions/product";
-import { cn } from "@/lib/utils";
-import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
 import {
   CommandDialog,
@@ -17,6 +15,8 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDebounce } from "@/hooks/use-debounce";
+import { cn } from "@/lib/utils";
 
 type ProductGroup = NonNullable<
   Awaited<ReturnType<typeof filterProducts>>["data"]

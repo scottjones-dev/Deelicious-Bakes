@@ -1,10 +1,10 @@
 "use server";
 
+import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { customers, orders } from "@/db/schema";
 import { stripe } from "@/lib/stripe";
-import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 
 export async function updateOrderStatus(
   orderId: string,

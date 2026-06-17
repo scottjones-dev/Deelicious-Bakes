@@ -1,13 +1,9 @@
 "use client";
 
-import * as React from "react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
-import type { MainNavItem } from "@/types";
-
-import { siteConfig } from "@/config/site";
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import * as React from "react";
 import {
   Accordion,
   AccordionContent,
@@ -17,7 +13,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { siteConfig } from "@/config/site";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
+import type { MainNavItem } from "@/types";
 
 interface MobileNavProps {
   items?: MainNavItem[];

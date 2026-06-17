@@ -1,5 +1,5 @@
-import { H1, H2, P } from "@/components/ui/typography";
 import { Mail, MapPin } from "lucide-react";
+import { H1, H2, P } from "@/components/ui/typography";
 
 export default function ContactPage() {
   return (

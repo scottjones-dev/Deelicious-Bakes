@@ -1,11 +1,9 @@
 import { count, desc } from "drizzle-orm";
 import {
-  AlertCircle,
   ArrowRight,
   CheckCircle2,
   Mail,
   Package,
-  Plus,
   PlusCircle,
   Settings,
   ShoppingBag,
@@ -13,7 +11,6 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,

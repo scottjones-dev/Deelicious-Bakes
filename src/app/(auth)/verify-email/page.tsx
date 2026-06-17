@@ -1,6 +1,6 @@
-import { Metadata } from "next";
-import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Signature } from "@/components/ui/typography";
 import VerifyEmailContent from "./verify-email-content";
 

@@ -1,6 +1,6 @@
-import React from "react";
-import { SiteHeader } from "@/components/layouts/site-header";
+import type React from "react";
 import { SiteFooter } from "@/components/layouts/site-footer";
+import { SiteHeader } from "@/components/layouts/site-header";
 
 export default function LobbyLayout({
   children,

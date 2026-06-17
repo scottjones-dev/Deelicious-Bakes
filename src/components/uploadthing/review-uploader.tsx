@@ -1,9 +1,9 @@
 "use client";
 
+import imageCompression from "browser-image-compression";
+import Image from "next/image";
 import { useState } from "react";
 import { UploadButton } from "@/utils/uploadthing";
-import Image from "next/image";
-import imageCompression from "browser-image-compression";
 
 interface ReviewPhotoProps {
   onPhotosUploaded: (urls: string[]) => void;

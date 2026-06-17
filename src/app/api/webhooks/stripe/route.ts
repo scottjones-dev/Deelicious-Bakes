@@ -1,14 +1,13 @@
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
-import { db } from "@/db";
-import { orders, orderItems } from "@/db/schema/orders";
-import { payments } from "@/db/schema/payments";
-import { carts } from "@/db/schema/carts";
-import { stocks, stockMovements } from "@/db/schema/stocks";
-import { eq } from "drizzle-orm";
 import { env } from "@/config/env";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { db } from "@/db";
+import { carts } from "@/db/schema/carts";
+import { orderItems, orders } from "@/db/schema/orders";
+import { payments } from "@/db/schema/payments";
+import { stockMovements, stocks } from "@/db/schema/stocks";
+import { stripe } from "@/lib/stripe";
 
 export async function POST(req: Request) {
   const body = await req.text();

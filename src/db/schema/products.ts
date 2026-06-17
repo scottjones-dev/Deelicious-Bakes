@@ -1,4 +1,3 @@
-import type { StoredFile } from "@/types";
 import { relations } from "drizzle-orm";
 import {
   boolean,
@@ -10,6 +9,7 @@ import {
   text,
   varchar,
 } from "drizzle-orm/pg-core";
+import type { StoredFile } from "@/types";
 
 import { generateId } from "@/utils/id";
 

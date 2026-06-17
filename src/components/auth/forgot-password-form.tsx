@@ -1,11 +1,10 @@
 "use client";
 
+import { Loader2, MailCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, MailCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -14,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { H3, P } from "@/components/ui/typography";
 import { authClient } from "@/lib/auth-client";
 

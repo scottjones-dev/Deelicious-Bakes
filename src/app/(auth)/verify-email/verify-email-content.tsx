@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {

@@ -1,10 +1,9 @@
+import * as Sentry from "@sentry/nextjs";
 import { task } from "@trigger.dev/sdk/v3";
-import { stripe } from "@/lib/stripe";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { products } from "@/db/schema/products";
-import { productVariants } from "@/db/schema/variants";
-import { eq } from "drizzle-orm";
-import * as Sentry from "@sentry/nextjs";
+import { stripe } from "@/lib/stripe";
 
 interface SyncProductPayload {
   productId: string;

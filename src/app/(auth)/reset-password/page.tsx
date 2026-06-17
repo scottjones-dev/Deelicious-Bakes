@@ -1,8 +1,8 @@
-import { Metadata } from "next";
+import { Loader2 } from "lucide-react";
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ResetPasswordForm } from "@/components/auth/reset-password-form";
 import { Signature } from "@/components/ui/typography";
-import { Loader2 } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Reset Password | Deelicious Bakes",

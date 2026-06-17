@@ -1,8 +1,7 @@
 import Link from "next/link";
-
-import { siteConfig } from "@/config/site";
-import { JoinNewsletterForm } from "@/components/marketing/join-newsletter-form";
 import { ModeToggle } from "@/components/layouts/mode-toggle";
+import { JoinNewsletterForm } from "@/components/marketing/join-newsletter-form";
+import { siteConfig } from "@/config/site";
 
 export function SiteFooter() {
   return (

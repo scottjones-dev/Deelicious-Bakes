@@ -1,12 +1,4 @@
-import {
-  Check,
-  Database,
-  KeyRound,
-  RefreshCw,
-  Settings,
-  Sliders,
-} from "lucide-react";
-import React from "react";
+import { Check, Database, KeyRound, RefreshCw, Sliders } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,

@@ -1,7 +1,6 @@
-import * as React from "react";
-import { Text, Section, Hr } from "react-email";
-import { EmailLayout } from "./_components/email-layout";
+import { Hr, Section, Text } from "react-email";
 import { EmailButton } from "./_components/email-button";
+import { EmailLayout } from "./_components/email-layout";
 import { theme } from "./_components/theme";
 
 interface OrderPlacedProps {

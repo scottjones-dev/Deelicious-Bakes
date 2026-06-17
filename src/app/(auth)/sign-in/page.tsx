@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { SigninForm } from "@/components/auth/sign-in-form";
 import { Signature } from "@/components/ui/typography";
 

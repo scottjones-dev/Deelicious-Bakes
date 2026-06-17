@@ -1,10 +1,10 @@
 "use server";
 
+import { tasks } from "@trigger.dev/sdk/v3";
+import { eq } from "drizzle-orm";
 import { unstable_noStore as noStore, revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { products, productTags, productVariants } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { tasks } from "@trigger.dev/sdk/v3";
 import { stripe } from "@/lib/stripe";
 import {
   createProductSchema,

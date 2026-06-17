@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  AlertCircle,
-  ArrowLeft,
-  Calendar,
-  Loader2,
-  Save,
-  ShoppingCart,
-} from "lucide-react";
+import { AlertCircle, ArrowLeft, Calendar, Loader2, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
@@ -98,7 +91,7 @@ export function CreateOrderForm({ customersList }: CreateOrderFormProps) {
       return;
     }
 
-    if (!total || isNaN(Number(total)) || Number(total) <= 0) {
+    if (!total || Number.isNaN(Number(total)) || Number(total) <= 0) {
       toast.error(
         "Please enter a valid order total amount (greater than zero).",
       );

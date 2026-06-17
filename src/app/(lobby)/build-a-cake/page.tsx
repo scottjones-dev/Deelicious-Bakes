@@ -1,7 +1,7 @@
+import { CakeSlice } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { H1, P } from "@/components/ui/typography";
-import { CakeSlice } from "lucide-react";
 
 export default function BuildACakePage() {
   return (

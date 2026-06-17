@@ -1,16 +1,10 @@
 "use client";
 
-import { H2, P, Signature } from "@/components/ui/typography";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { authClient } from "@/lib/auth-client";
-import { ShoppingBag, Settings, UserCircle, Loader2 } from "lucide-react";
+import { Loader2, Settings, ShoppingBag, UserCircle } from "lucide-react";
 import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { H2, P, Signature } from "@/components/ui/typography";
+import { authClient } from "@/lib/auth-client";
 
 export default function AccountDashboard() {
   const { data: session, isPending } = authClient.useSession();

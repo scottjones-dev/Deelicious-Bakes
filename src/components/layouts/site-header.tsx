@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { AuthDropdown } from "@/components/layouts/auth-dropdown";
 import { MainNav } from "@/components/layouts/main-nav";
 import { MobileNav } from "@/components/layouts/mobile-nav";
@@ -5,7 +6,6 @@ import { ProductsCombobox } from "@/components/layouts/products-combobox";
 import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import type { MainNavItem } from "@/types";
-import { headers } from "next/headers";
 
 export async function SiteHeader() {
   const session = await auth.api.getSession({

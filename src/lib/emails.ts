@@ -1,15 +1,14 @@
 import * as React from "react";
 import { render } from "react-email";
-import { resend } from "./resend";
 import { env } from "@/config/env";
-
-import WelcomeEmail from "@/emails/welcome";
-import VerifyEmail from "@/emails/verify-email";
-import ResetPassword from "@/emails/reset-password";
-import PasswordChanged from "@/emails/password-changed";
+import ContactUs from "@/emails/contact-us";
 import OrderPlaced from "@/emails/order-placed";
 import OrderUpdate from "@/emails/order-update";
-import ContactUs from "@/emails/contact-us";
+import PasswordChanged from "@/emails/password-changed";
+import ResetPassword from "@/emails/reset-password";
+import VerifyEmail from "@/emails/verify-email";
+import WelcomeEmail from "@/emails/welcome";
+import { resend } from "./resend";
 
 const FROM_ADDRESS =
   env.EMAIL_FROM_ADDRESS || "Deelicious Bakes <hello@deeliciousbakes.co.uk>";

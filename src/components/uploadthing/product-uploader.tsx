@@ -1,8 +1,8 @@
 "use client";
 
-import { UploadDropzone } from "@/utils/uploadthing";
 import Image from "next/image";
 import { useState } from "react";
+import { UploadDropzone } from "@/utils/uploadthing";
 
 interface AdminProductUploaderProps {
   onImagesChanged: (imageObjects: Array<{ url: string; key: string }>) => void;

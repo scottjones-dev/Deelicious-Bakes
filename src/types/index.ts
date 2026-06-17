@@ -1,7 +1,7 @@
 // src/types/index.ts
 
-import { type SQL } from "drizzle-orm";
-import { type ClientUploadedFileData } from "uploadthing/types";
+import type { SQL } from "drizzle-orm";
+import type { ClientUploadedFileData } from "uploadthing/types";
 
 export interface NavItem {
   title: string;

@@ -1,10 +1,10 @@
-import { H1, P } from "@/components/ui/typography";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { H1, P } from "@/components/ui/typography";
 
 export default function FAQsPage() {
   const faqs = [

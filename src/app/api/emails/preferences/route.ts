@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import { env } from "@/config/env";
 import { auth } from "@/lib/auth";
 import { resend } from "@/lib/resend";
-import { env } from "@/config/env";
 
 export async function POST(request: Request) {
   try {

@@ -1,20 +1,20 @@
-import Link from "next/link";
-import Image from "next/image";
-import { db } from "@/db";
-import { categories, products } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import {
+  ArrowRight,
   Cake,
+  Clock,
   Cookie,
   Heart,
-  Sparkles,
-  ShoppingBag,
-  ArrowRight,
   MapPin,
-  Clock,
+  ShoppingBag,
+  Sparkles,
 } from "lucide-react";
-import { H1, H2, P, Signature, Lead } from "@/components/ui/typography";
+import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { H1, Lead, P, Signature } from "@/components/ui/typography";
+import { db } from "@/db";
+import { products } from "@/db/schema";
 
 // Category fallback imagery if none present in database
 const categoryFallbacks: Record<string, string> = {

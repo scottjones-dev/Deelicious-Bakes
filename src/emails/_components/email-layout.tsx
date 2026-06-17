@@ -1,8 +1,8 @@
-import * as React from "react";
+import type * as React from "react";
+import { Body, Container, Font, Head, Html, Preview } from "react-email";
 import { env } from "@/config/env";
-import { Html, Head, Preview, Body, Container, Font } from "react-email";
-import { theme } from "./theme";
 import { EmailFooter } from "./email-footer"; // Import updated footer
+import { theme } from "./theme";
 
 interface EmailLayoutProps {
   previewText: string;

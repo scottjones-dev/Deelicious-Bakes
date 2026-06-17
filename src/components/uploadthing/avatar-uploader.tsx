@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useUploadThing } from "@/utils/uploadthing";
-import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
+import { useState } from "react";
+import { authClient } from "@/lib/auth-client";
+import { useUploadThing } from "@/utils/uploadthing";
 
 interface AvatarProps {
   currentImage?: string | null;

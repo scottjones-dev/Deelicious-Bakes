@@ -1,12 +1,9 @@
 "use client";
 
+import { Loader2, Save } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Card,
   CardContent,
@@ -14,9 +11,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { H2, P } from "@/components/ui/typography";
-import { authClient } from "@/lib/auth-client";
 import { UserAvatarUploader } from "@/components/uploadthing/avatar-uploader";
+import { authClient } from "@/lib/auth-client";
 
 export default function SettingsPage() {
   const { data: session, isPending: sessionPending } = authClient.useSession();
@@ -42,7 +42,7 @@ export default function SettingsPage() {
 
     const { error } = await authClient.updateUser({
       name,
-      // @ts-ignore - marketingConsent is an additionalField
+      // @ts-expect-error - marketingConsent is an additionalField
       marketingConsent,
     });
 

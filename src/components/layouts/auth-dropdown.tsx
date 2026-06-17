@@ -1,9 +1,10 @@
 "use client";
 
-import * as React from "react";
+import type { User } from "better-auth";
+import { Cog, LayoutDashboard, Loader2, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,9 +16,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Cog, LayoutDashboard, Loader2, LogOut } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import type { User } from "better-auth";
+import { cn } from "@/lib/utils";
 
 interface AuthDropdownProps {
   user: User | null;

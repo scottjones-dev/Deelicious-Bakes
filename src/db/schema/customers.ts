@@ -2,9 +2,8 @@ import { relations } from "drizzle-orm";
 import { boolean, index, pgTable, text, varchar } from "drizzle-orm/pg-core";
 
 import { generateId } from "@/utils/id";
-
-import { user } from "./auth";
 import { addresses } from "./addresses";
+import { user } from "./auth";
 import { orders } from "./orders";
 import { lifecycleDates } from "./utils";
 

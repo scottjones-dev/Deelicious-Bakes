@@ -1,4 +1,4 @@
-import { type MainNavItem, type FooterItem } from "@/types";
+import type { FooterItem, MainNavItem } from "@/types";
 
 export type SiteConfig = typeof siteConfig;
 

@@ -1,11 +1,11 @@
 "use client";
 
+import { Loader2, Send } from "lucide-react";
 import * as React from "react";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Send } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export function JoinNewsletterForm() {
   const [email, setEmail] = React.useState("");
