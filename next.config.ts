@@ -4,6 +4,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  typescript: {
+    // Verified in parallel by GitHub Actions CI, making Vercel build faster
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    // Verified in parallel by GitHub Actions CI, making Vercel build faster
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {
