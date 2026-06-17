@@ -8,10 +8,6 @@ const nextConfig: NextConfig = {
     // Verified in parallel by GitHub Actions CI, making Vercel build faster
     ignoreBuildErrors: true,
   },
-  eslint: {
-    // Verified in parallel by GitHub Actions CI, making Vercel build faster
-    ignoreDuringBuilds: true,
-  },
   images: {
     remotePatterns: [
       {
