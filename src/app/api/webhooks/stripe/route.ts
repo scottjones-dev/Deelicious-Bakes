@@ -36,12 +36,12 @@ export async function POST(req: Request) {
 
     if (orderId) {
       console.log(`💰 Stripe Checkout session completed. Syncing order: ${orderId}`);
-      
+
       try {
         await db.transaction(async (tx) => {
           // 1. Update Order Status to "Paid"
           await tx.update(orders)
-            .set({ 
+            .set({
               status: "paid",
               stripePaymentIntentId: session.payment_intent as string,
             })
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
           // 3. Mark Cart as "Converted"
           if (cartId) {
             await tx.update(carts)
-              .set({ 
+              .set({
                 status: "converted",
                 convertedOrderId: orderId,
               })
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
 
               if (currentStock) {
                 const newQuantity = currentStock.quantity - item.quantity;
-                
+
                 // Update stock volume
                 await tx.update(stocks)
                   .set({ quantity: newQuantity })
@@ -101,8 +101,14 @@ export async function POST(req: Request) {
 
         // 5. Fire off Email Notifications via Trigger.dev in the background
         // Wait! We trigger the background tasks here
-        await tasks.trigger("send-order-placed-email", { orderId });
-        
+        if (process.env.TRIGGER_SECRET_KEY) {
+          // We dynamically require it here so it NEVER runs during 'next build'
+          const { tasks } = await import("@trigger.dev/sdk/v3");
+          await tasks.trigger("send-order-placed-email", { orderId });
+        } else {
+          console.log("⏭️ Skipping task trigger during build environment verification.");
+        }
+
         console.log(`✅ Order ${orderId} successfully locked, paid, and stocked.`);
       } catch (dbError) {
         console.error(`❌ Transaction failed during webhook order fulfillment for order ${orderId}:`, dbError);
