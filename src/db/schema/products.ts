@@ -1,5 +1,4 @@
-import type { StoredFile } from "@/types"
-import { relations } from "drizzle-orm"
+import { relations } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -9,20 +8,21 @@ import {
   pgTable,
   text,
   varchar,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
+import type { StoredFile } from "@/types";
 
-import { generateId } from "@/utils/id"
+import { generateId } from "@/utils/id";
 
-import { categories } from "./categories"
-import { productTags } from "./tags"
-import { lifecycleDates } from "./utils"
-import { productVariants } from "./variants"
+import { categories } from "./categories";
+import { productTags } from "./tags";
+import { lifecycleDates } from "./utils";
+import { productVariants } from "./variants";
 
 export const productStatusEnum = pgEnum("product_status", [
   "active",
   "draft",
   "archived",
-])
+]);
 
 export const products = pgTable(
   "products",
@@ -45,8 +45,8 @@ export const products = pgTable(
   },
   (table) => ({
     categoryIdIdx: index("products_category_id_idx").on(table.categoryId),
-  })
-)
+  }),
+);
 
 export const productsRelations = relations(products, ({ one, many }) => ({
   category: one(categories, {
@@ -55,7 +55,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   }),
   variants: many(productVariants),
   tags: many(productTags),
-}))
+}));
 
-export type Product = typeof products.$inferSelect
-export type NewProduct = typeof products.$inferInsert
+export type Product = typeof products.$inferSelect;
+export type NewProduct = typeof products.$inferInsert;

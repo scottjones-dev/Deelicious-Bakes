@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import {
   syncOrdersWithStripeAction,
   updateOrderStatus,
-} from "@/app/actions/admin";
+} from "@/app/actions/orders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

@@ -1,17 +1,17 @@
 import { relations } from "drizzle-orm";
 import {
+  index,
   integer,
   pgEnum,
   pgTable,
   text,
   varchar,
-  index,
 } from "drizzle-orm/pg-core";
 
 import { generateId } from "@/utils/id";
-import { products } from "./products";
 import { customers } from "./customers";
 import { orders } from "./orders";
+import { products } from "./products";
 import { lifecycleDates } from "./utils";
 
 export const reviewStatusEnum = pgEnum("review_status", [

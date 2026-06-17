@@ -1,6 +1,12 @@
-import { AlertCircle, ArrowLeft, Save, Users } from "lucide-react";
+"use client";
+
+import { AlertCircle, ArrowLeft, Loader2, Save } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+import { onboardCustomerAction } from "@/app/actions/admin";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,11 +18,49 @@ import {
 import { H1, P } from "@/components/ui/typography";
 
 export default function AdminNewCustomerPage() {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  // Form State
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!name || !email) {
+      toast.error("Name and Email are required fields.");
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await onboardCustomerAction({
+        name,
+        email,
+        phone: phone || undefined,
+        password: password || undefined,
+        marketingConsent,
+      });
+
+      if (res.success) {
+        toast.success(`Successfully onboarded customer "${name}"! 🎉`);
+        router.push("/admin/customers");
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to onboard customer.");
+      }
+    });
+  };
+
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl mx-auto p-8">
       {/* Go Back Link */}
       <div className="flex items-center gap-2">
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           asChild
@@ -39,7 +83,7 @@ export default function AdminNewCustomerPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Details Form (Placeholder Grid) */}
+        {/* Main Details Form */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="border border-border/60 bg-card">
             <CardHeader>
@@ -55,38 +99,57 @@ export default function AdminNewCustomerPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-                    Full Name
+                    Full Name <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="text"
+                    required
                     placeholder="e.g. Eleanor Vance"
-                    disabled
-                    className="w-full px-3 py-2 text-sm bg-muted/40 border border-border rounded-lg cursor-not-allowed text-muted-foreground font-light focus:outline-none"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground font-light focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40"
                   />
                 </div>
                 <div className="grid gap-2">
                   <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-                    Email Address
+                    Email Address <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="email"
+                    required
                     placeholder="e.g. eleanor@example.com"
-                    disabled
-                    className="w-full px-3 py-2 text-sm bg-muted/40 border border-border rounded-lg cursor-not-allowed text-muted-foreground font-light focus:outline-none"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground font-light focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40"
                   />
                 </div>
               </div>
 
-              <div className="grid gap-2">
-                <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  placeholder="e.g. +44 7700 900077"
-                  disabled
-                  className="w-full px-3 py-2 text-sm bg-muted/40 border border-border rounded-lg cursor-not-allowed text-muted-foreground font-light focus:outline-none"
-                />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <label className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="e.g. +44 7700 900077"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground font-light focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    Initial Password
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Optional (auto-generated if empty)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground font-light focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -94,25 +157,19 @@ export default function AdminNewCustomerPage() {
           <Card className="border border-border/60 bg-card">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                Personalized Notes
+                Account Information
               </CardTitle>
               <CardDescription className="text-xs">
-                Store specific customer notes such as allergy records (e.g.
-                nut-free) or cake flavor favorites.
+                Manual additions will also be registered in Better Auth,
+                allowing the user to sign in to the storefront with this email.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-2">
-                <label className="text-xs font-bold text-foreground uppercase tracking-wider">
-                  Operational Notes
-                </label>
-                <textarea
-                  placeholder="e.g. Eleanor prefers dark chocolate sponges, lives locally in Salisbury. Gluten-free preferred."
-                  rows={4}
-                  disabled
-                  className="w-full px-3 py-2 text-sm bg-muted/40 border border-border rounded-lg cursor-not-allowed text-muted-foreground font-light focus:outline-none resize-none"
-                />
-              </div>
+            <CardContent className="space-y-2">
+              <P className="text-xs text-muted-foreground">
+                Once onboarded, an automated Stripe Customer profile and Resend
+                contact will be synchronized in the background via Trigger.dev
+                pipelines.
+              </P>
             </CardContent>
           </Card>
         </div>
@@ -134,12 +191,13 @@ export default function AdminNewCustomerPage() {
                   <input
                     type="checkbox"
                     id="marketingConsent"
-                    disabled
-                    className="h-4 w-4 rounded border-border text-primary cursor-not-allowed"
+                    checked={marketingConsent}
+                    onChange={(e) => setMarketingConsent(e.target.checked)}
+                    className="h-4 w-4 rounded border-border text-primary cursor-pointer focus:ring-0 focus:ring-offset-0"
                   />
                   <label
                     htmlFor="marketingConsent"
-                    className="text-xs text-muted-foreground font-medium cursor-not-allowed select-none"
+                    className="text-xs text-muted-foreground font-medium cursor-pointer select-none"
                   >
                     Subscribe to newsletter bakes
                   </label>
@@ -147,16 +205,37 @@ export default function AdminNewCustomerPage() {
               </div>
 
               <div className="border-t border-border/60 pt-4 flex flex-col gap-2">
-                <Button disabled className="w-full cursor-not-allowed">
-                  <Save className="h-4 w-4 mr-1.5" />
-                  <span>Onboard Customer</span>
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  className="w-full cursor-pointer h-10"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                      <span>Saving Customer...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-1.5" />
+                      <span>Onboard Customer</span>
+                    </>
+                  )}
                 </Button>
                 <Button
+                  type="button"
                   variant="ghost"
-                  disabled
-                  className="w-full cursor-not-allowed text-muted-foreground"
+                  onClick={() => {
+                    setName("");
+                    setEmail("");
+                    setPhone("");
+                    setPassword("");
+                    setMarketingConsent(false);
+                  }}
+                  disabled={isPending}
+                  className="w-full text-muted-foreground cursor-pointer h-10"
                 >
-                  <span>Cancel changes</span>
+                  <span>Reset Form</span>
                 </Button>
               </div>
             </CardContent>
@@ -178,6 +257,6 @@ export default function AdminNewCustomerPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </form>
   );
 }

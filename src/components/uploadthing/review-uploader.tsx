@@ -1,9 +1,9 @@
 "use client";
 
+import imageCompression from "browser-image-compression";
+import Image from "next/image";
 import { useState } from "react";
 import { UploadButton } from "@/utils/uploadthing";
-import Image from "next/image";
-import imageCompression from "browser-image-compression";
 
 interface ReviewPhotoProps {
   onPhotosUploaded: (urls: string[]) => void;
@@ -16,7 +16,9 @@ export function ReviewPhotoUploader({ onPhotosUploaded }: ReviewPhotoProps) {
   return (
     <div className="rounded-lg border border-border p-4 bg-card shadow-sm">
       <label className="block text-sm font-medium text-muted-foreground mb-3 font-heading">
-        {isCompressing ? "Optimizing photo quality..." : "Add photos of your delivery or custom cake!"}
+        {isCompressing
+          ? "Optimizing photo quality..."
+          : "Add photos of your delivery or custom cake!"}
       </label>
 
       <UploadButton
@@ -33,14 +35,19 @@ export function ReviewPhotoUploader({ onPhotosUploaded }: ReviewPhotoProps) {
             const compressedFiles = await Promise.all(
               files.map(async (file) => {
                 try {
-                  const compressedBlob = await imageCompression(file, compressionOptions);
+                  const compressedBlob = await imageCompression(
+                    file,
+                    compressionOptions,
+                  );
 
-                  return new File([compressedBlob], file.name, { type: file.type });
+                  return new File([compressedBlob], file.name, {
+                    type: file.type,
+                  });
                 } catch (err) {
                   console.error("Compression error on file:", file.name, err);
                   return file;
                 }
-              })
+              }),
             );
 
             return compressedFiles;
@@ -68,7 +75,10 @@ export function ReviewPhotoUploader({ onPhotosUploaded }: ReviewPhotoProps) {
       {uploadedImages.length > 0 && (
         <div className="mt-4 grid grid-cols-4 gap-2">
           {uploadedImages.map((url, idx) => (
-            <div key={idx} className="relative aspect-square w-full overflow-hidden rounded-md border border-border bg-muted/10">
+            <div
+              key={idx}
+              className="relative aspect-square w-full overflow-hidden rounded-md border border-border bg-muted/10"
+            >
               <Image
                 src={url}
                 alt={`Uploaded product preview review number ${idx}`}

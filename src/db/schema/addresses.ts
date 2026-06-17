@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm"
+import { relations } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -6,14 +6,14 @@ import {
   pgTable,
   text,
   varchar,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { generateId } from "@/utils/id"
+import { generateId } from "@/utils/id";
 
-import { customers } from "./customers"
-import { lifecycleDates } from "./utils"
+import { customers } from "./customers";
+import { lifecycleDates } from "./utils";
 
-export const addressTypeEnum = pgEnum("address_type", ["billing", "delivery"])
+export const addressTypeEnum = pgEnum("address_type", ["billing", "delivery"]);
 
 export const addresses = pgTable(
   "addresses",
@@ -37,15 +37,15 @@ export const addresses = pgTable(
   },
   (table) => ({
     customerIdIdx: index("addresses_customer_id_idx").on(table.customerId),
-  })
-)
+  }),
+);
 
 export const addressesRelations = relations(addresses, ({ one }) => ({
   customer: one(customers, {
     fields: [addresses.customerId],
     references: [customers.id],
   }),
-}))
+}));
 
-export type Address = typeof addresses.$inferSelect
-export type NewAddress = typeof addresses.$inferInsert
+export type Address = typeof addresses.$inferSelect;
+export type NewAddress = typeof addresses.$inferInsert;

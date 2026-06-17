@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm"
+import { relations } from "drizzle-orm";
 import {
   decimal,
   index,
@@ -9,15 +9,15 @@ import {
   text,
   timestamp,
   varchar,
-} from "drizzle-orm/pg-core"
+} from "drizzle-orm/pg-core";
 
-import { generateId } from "@/utils/id"
+import { generateId } from "@/utils/id";
 
-import { addresses } from "./addresses"
-import { customers } from "./customers"
-import { products } from "./products"
-import { lifecycleDates } from "./utils"
-import { productVariants } from "./variants"
+import { addresses } from "./addresses";
+import { customers } from "./customers";
+import { products } from "./products";
+import { lifecycleDates } from "./utils";
+import { productVariants } from "./variants";
 
 export const orderStatusEnum = pgEnum("order_status", [
   "pending",
@@ -27,12 +27,12 @@ export const orderStatusEnum = pgEnum("order_status", [
   "completed",
   "cancelled",
   "refunded",
-])
+]);
 
 export const orderFulfillmentMethodEnum = pgEnum("order_fulfillment_method", [
   "delivery",
   "collection",
-])
+]);
 
 export const orders = pgTable(
   "orders",
@@ -63,9 +63,7 @@ export const orders = pgTable(
     subtotal: decimal("subtotal", { precision: 10, scale: 2 })
       .notNull()
       .default("0"),
-    total: decimal("total", { precision: 10, scale: 2 })
-      .notNull()
-      .default("0"),
+    total: decimal("total", { precision: 10, scale: 2 }).notNull().default("0"),
     currency: text("currency").notNull().default("gbp"),
     stripePaymentIntentId: text("stripe_payment_intent_id"), // denormalized for quick lookup; payments table is source of truth
     ...lifecycleDates,
@@ -74,13 +72,13 @@ export const orders = pgTable(
     customerIdIdx: index("orders_customer_id_idx").on(table.customerId),
     statusIdx: index("orders_status_idx").on(table.status),
     billingAddressIdIdx: index("orders_billing_address_id_idx").on(
-      table.billingAddressId
+      table.billingAddressId,
     ),
     deliveryAddressIdIdx: index("orders_delivery_address_id_idx").on(
-      table.deliveryAddressId
+      table.deliveryAddressId,
     ),
-  })
-)
+  }),
+);
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   customer: one(customers, {
@@ -96,10 +94,10 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     references: [addresses.id],
   }),
   items: many(orderItems),
-}))
+}));
 
-export type Order = typeof orders.$inferSelect
-export type NewOrder = typeof orders.$inferInsert
+export type Order = typeof orders.$inferSelect;
+export type NewOrder = typeof orders.$inferInsert;
 
 // immutable line-item snapshot — decoupled from live product/variant data
 // so historical orders never change if a product is later edited, repriced, or deleted
@@ -114,7 +112,7 @@ export const orderItems = pgTable(
       .notNull(),
     productId: varchar("product_id", { length: 30 }).references(
       () => products.id,
-      { onDelete: "set null" }
+      { onDelete: "set null" },
     ),
     productVariantId: varchar("product_variant_id", {
       length: 30,
@@ -125,17 +123,19 @@ export const orderItems = pgTable(
     unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
     quantity: integer("quantity").notNull().default(1),
     lineTotal: decimal("line_total", { precision: 10, scale: 2 }).notNull(),
-    customizations: json("customizations").$type<Record<string, any> | null>().default(null),
+    customizations: json("customizations")
+      .$type<Record<string, any> | null>()
+      .default(null),
     createdAt: lifecycleDates.createdAt,
   },
   (table) => ({
     orderIdIdx: index("order_items_order_id_idx").on(table.orderId),
     productIdIdx: index("order_items_product_id_idx").on(table.productId),
     productVariantIdIdx: index("order_items_product_variant_id_idx").on(
-      table.productVariantId
+      table.productVariantId,
     ),
-  })
-)
+  }),
+);
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   order: one(orders, {
@@ -150,7 +150,7 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
     fields: [orderItems.productVariantId],
     references: [productVariants.id],
   }),
-}))
+}));
 
-export type OrderItem = typeof orderItems.$inferSelect
-export type NewOrderItem = typeof orderItems.$inferInsert
+export type OrderItem = typeof orderItems.$inferSelect;
+export type NewOrderItem = typeof orderItems.$inferInsert;

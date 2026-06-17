@@ -1,5 +1,4 @@
 import { SidebarNav } from "@/components/account/sidebar-nav";
-import { H2, P } from "@/components/ui/typography";
 
 const sidebarNavItems = [
   {

@@ -1,12 +1,11 @@
-import { relations } from "drizzle-orm"
-import { boolean, index, pgTable, text, varchar } from "drizzle-orm/pg-core"
+import { relations } from "drizzle-orm";
+import { boolean, index, pgTable, text, varchar } from "drizzle-orm/pg-core";
 
-import { generateId } from "@/utils/id"
-
-import { user } from "./auth"
-import { addresses } from "./addresses"
-import { orders } from "./orders"
-import { lifecycleDates } from "./utils"
+import { generateId } from "@/utils/id";
+import { addresses } from "./addresses";
+import { user } from "./auth";
+import { orders } from "./orders";
+import { lifecycleDates } from "./utils";
 
 export const customers = pgTable(
   "customers",
@@ -30,15 +29,15 @@ export const customers = pgTable(
     userIdIdx: index("customers_user_id_idx").on(table.userId),
     emailIdx: index("customers_email_idx").on(table.email),
     stripeCustomerIdIdx: index("customers_stripe_customer_id_idx").on(
-      table.stripeCustomerId
+      table.stripeCustomerId,
     ),
-  })
-)
+  }),
+);
 
 export const customersRelations = relations(customers, ({ many }) => ({
   addresses: many(addresses),
   orders: many(orders),
-}))
+}));
 
-export type Customer = typeof customers.$inferSelect
-export type NewCustomer = typeof customers.$inferInsert
+export type Customer = typeof customers.$inferSelect;
+export type NewCustomer = typeof customers.$inferInsert;

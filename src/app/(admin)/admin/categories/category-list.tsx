@@ -4,7 +4,7 @@ import { Layers, Loader2, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { deleteCategory } from "@/app/actions/admin";
+import { deleteCategory } from "@/app/actions/category";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -116,7 +116,7 @@ export function CategoryList({ initialCategories }: CategoryListProps) {
                         {cat.slug}
                       </td>
                       <td
-                        className="py-3.5 px-4 text-muted-foreground text-xs max-w-[200px] truncate"
+                        className="py-3.5 px-4 text-muted-foreground text-xs max-w-50 truncate"
                         title={cat.description || ""}
                       >
                         {cat.description || (

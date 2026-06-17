@@ -16,7 +16,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { deleteProduct, syncProductToStripeAction } from "@/app/actions/admin";
+import {
+  deleteProduct,
+  syncProductToStripeAction,
+} from "@/app/actions/product";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

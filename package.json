@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "drizzle-kit push --force && next build",
+    "build": "node -e \"if (process.env.GITHUB_ACTIONS !== 'true') require('child_process').execSync('drizzle-kit push --force', {stdio: 'inherit'})\" && next build",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
     "db:push": "drizzle-kit push",
+    "db:seed": "tsx src/db/seed.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:reset": "drizzle-kit drop && drizzle-kit push",
