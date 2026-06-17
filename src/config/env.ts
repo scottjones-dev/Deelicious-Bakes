@@ -13,7 +13,7 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   RESEND_AUDIENCE_ID: z.string().optional(),
   EMAIL_FROM_ADDRESS: z.email().optional(),
-  RESEND_WEBHOOK_SECRET: z.string(),
+  RESEND_WEBHOOK_SECRET: z.string().default('dummy_secret'),
 
   UPLOADTHING_TOKEN: z.string().optional(),
 
@@ -22,7 +22,7 @@ const envSchema = z.object({
 
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
-  STRIPE_WEBHOOK_SECRET: z.string(),
+  STRIPE_WEBHOOK_SECRET: z.string().default("dummy_secret"),
 
   NEXT_PUBLIC_UMAMI_WEBSITE_ID: z.string().optional(),
   TRUSTED_ORIGINS: z.string().optional(),
