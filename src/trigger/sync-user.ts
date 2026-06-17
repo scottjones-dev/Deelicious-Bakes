@@ -3,99 +3,169 @@ import { stripe } from "@/lib/stripe";
 import { resend } from "@/lib/resend";
 import { db } from "@/db";
 import { user as userTable } from "@/db/schema/auth";
-import { eq, isNull } from "drizzle-orm";
+import { customers } from "@/db/schema/customers";
+import { eq } from "drizzle-orm";
 import { sendWelcomeEmail } from "@/lib/emails";
 import { env } from "@/config/env";
 import * as Sentry from "@sentry/nextjs";
 
-/**
- * 📧 Task: Sync a single user to Stripe and Resend
- * Triggered automatically after email verification
- */
-export const syncUserOnVerification = task({
-  id: "sync-user-on-verification",
+interface SyncUserPayload {
+  userId: string;
+  email: string;
+  name: string;
+  marketingConsent: boolean;
+}
+
+// =========================================================================
+// TASK 1: Sync to Stripe (Creates Stripe Customer & updates Drizzle DB)
+// =========================================================================
+export const syncUserToStripe = task({
+  id: "sync-user-to-stripe",
   retry: {
     maxAttempts: 5,
     factor: 2,
   },
-  run: async (payload: { userId: string; email: string; name: string; marketingConsent: boolean }) => {
+  run: async (payload: SyncUserPayload) => {
     return await Sentry.withScope(async (scope) => {
       scope.setUser({ id: payload.userId, email: payload.email });
-      scope.setTag("workflow", "afterEmailVerification-background");
+      scope.setTag("task", "sync-user-to-stripe");
 
-      try {
-        // 1. Stripe Step (Idempotent)
-        scope.setContext("step", { name: "Stripe Creation" });
-        const stripeCustomer = await stripe.customers.create({
-          email: payload.email,
+      // 1. Stripe Customer Creation (Idempotent)
+      const stripeCustomer = await stripe.customers.create({
+        email: payload.email,
+        name: payload.name,
+        metadata: { dbUserId: payload.userId },
+      }, { idempotencyKey: `stripe_cust_${payload.userId}` });
+
+      // 2. Sync to local Auth User Table
+      await db.update(userTable)
+        .set({ stripeCustomerId: stripeCustomer.id })
+        .where(eq(userTable.id, payload.userId));
+
+      // 3. Match and link the Customers Table (Decoupled profile table)
+      const existingCustomer = await db.query.customers.findFirst({
+        where: eq(customers.email, payload.email),
+      });
+
+      if (existingCustomer) {
+        await db.update(customers)
+          .set({
+            userId: payload.userId,
+            stripeCustomerId: stripeCustomer.id,
+            marketingConsent: payload.marketingConsent,
+          })
+          .where(eq(customers.id, existingCustomer.id));
+      } else {
+        await db.insert(customers).values({
+          userId: payload.userId,
           name: payload.name,
-          metadata: { dbUserId: payload.userId },
-        }, { idempotencyKey: payload.userId });
-
-        // 2. DB Sync Step
-        scope.setContext("step", { name: "Database Update" });
-        await db.update(userTable)
-          .set({ stripeCustomerId: stripeCustomer.id })
-          .where(eq(userTable.id, payload.userId));
-
-        // 3. Resend Marketing Step
-        if (env.RESEND_AUDIENCE_ID) {
-          scope.setContext("step", { name: "Resend Audience Sync" });
-          const [firstName = "", lastName = ""] = payload.name.split(" ");
-          
-          try {
-            await resend.contacts.create({
-              audienceId: env.RESEND_AUDIENCE_ID,
-              email: payload.email,
-              firstName,
-              lastName,
-              unsubscribed: !payload.marketingConsent,
-            });
-          } catch (resendError: any) {
-            // If contact already exists, update it instead
-            if (resendError.message?.includes("already exists")) {
-              await resend.contacts.update({
-                audienceId: env.RESEND_AUDIENCE_ID,
-                email: payload.email,
-                firstName,
-                lastName,
-                unsubscribed: !payload.marketingConsent,
-              });
-            } else {
-              throw resendError;
-            }
-          }
-        }
-
-        // 4. Welcome Email
-        scope.setContext("step", { name: "Welcome Email" });
-        await sendWelcomeEmail({ 
-          to: payload.email, 
-          customerName: payload.name 
+          email: payload.email,
+          stripeCustomerId: stripeCustomer.id,
+          marketingConsent: payload.marketingConsent,
         });
-
-        return { success: true };
-      } catch (error) {
-        Sentry.captureException(error);
-        throw error;
       }
+
+      return { stripeCustomerId: stripeCustomer.id };
     });
   },
 });
 
-/**
- * 🕒 Scheduled Task: Daily Integrity Sync
- * Runs every day at 3 AM to catch any missed syncs or updates
- */
+// =========================================================================
+// TASK 2: Sync to Resend Audience
+// =========================================================================
+export const syncUserToResend = task({
+  id: "sync-user-to-resend",
+  retry: {
+    maxAttempts: 5,
+    factor: 2,
+  },
+  run: async (payload: SyncUserPayload) => {
+    const audienceId = env.RESEND_AUDIENCE_ID;
+    if (!audienceId) {
+      return { skipped: true, reason: "No RESEND_AUDIENCE_ID configured" };
+    }
+
+    return await Sentry.withScope(async (scope) => {
+      scope.setUser({ id: payload.userId, email: payload.email });
+      scope.setTag("task", "sync-user-to-resend");
+
+      const [firstName = "", lastName = ""] = payload.name.split(" ");
+      
+      try {
+        await resend.contacts.create({
+          audienceId,
+          email: payload.email,
+          firstName,
+          lastName,
+          unsubscribed: !payload.marketingConsent,
+        });
+      } catch (resendError: any) {
+        // If contact already exists on Resend, update it to keep consent in sync
+        if (resendError.message?.includes("already exists")) {
+          await resend.contacts.update({
+            audienceId,
+            email: payload.email,
+            firstName,
+            lastName,
+            unsubscribed: !payload.marketingConsent,
+          });
+        } else {
+          throw resendError;
+        }
+      }
+
+      return { success: true };
+    });
+  },
+});
+
+// =========================================================================
+// TASK 3: Send Welcome Email
+// =========================================================================
+export const triggerWelcomeEmail = task({
+  id: "trigger-welcome-email",
+  retry: {
+    maxAttempts: 3,
+    factor: 1.5,
+  },
+  run: async (payload: { email: string; name: string }) => {
+    await sendWelcomeEmail({ 
+      to: payload.email, 
+      customerName: payload.name 
+    });
+    return { sent: true };
+  },
+});
+
+// =========================================================================
+// ORCHESTRATOR TASK (Backward Compatible Entrypoint)
+// =========================================================================
+export const syncUserOnVerification = task({
+  id: "sync-user-on-verification",
+  run: async (payload: SyncUserPayload) => {
+    // Fire off Stripe, Resend and Welcome email tasks concurrently in the background.
+    // If any individual task fails, Trigger.dev handles its retries in isolation.
+    await Promise.all([
+      syncUserToStripe.trigger(payload),
+      syncUserToResend.trigger(payload),
+      triggerWelcomeEmail.trigger({ email: payload.email, name: payload.name }),
+    ]);
+
+    return { orchestration: "initiated" };
+  },
+});
+
+// =========================================================================
+// SCHEDULED TASK: Daily Integrity Sync (3 AM Daily)
+// =========================================================================
 export const dailyUserIntegritySync = schedules.task({
   id: "daily-user-integrity-sync",
-  cron: "0 3 * * *", // 3 AM daily
+  cron: "0 3 * * *",
   run: async () => {
     return await Sentry.withScope(async (scope) => {
       scope.setTag("workflow", "daily-integrity-sync");
 
       try {
-        // 1. Fetch all users who might need syncing
         const allUsers = await db.select().from(userTable);
         
         console.log(`📡 Starting daily sync for ${allUsers.length} users...`);
@@ -128,7 +198,6 @@ export const dailyUserIntegritySync = schedules.task({
                   unsubscribed: !user.marketingConsent,
                 });
               } catch (resendError: any) {
-                // Update if already exists to ensure consent is current
                 await resend.contacts.update({
                   audienceId: env.RESEND_AUDIENCE_ID,
                   email: user.email,
@@ -139,7 +208,6 @@ export const dailyUserIntegritySync = schedules.task({
           } catch (userError) {
             console.error(`❌ Failed to sync user ${user.email}:`, userError);
             Sentry.captureException(userError);
-            // Continue to next user
           }
         }
 

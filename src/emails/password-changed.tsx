@@ -34,7 +34,7 @@ export const PasswordChanged = ({
       }}>
         Hi {customerName},
         <br /><br />
-        This is a quick confirmation that the password for your Dee-licious Bakes account was recently changed.
+        This is a quick confirmation that the password for your Deelicious Bakes account was recently changed.
       </Text>
 
       <Text style={{

@@ -3,9 +3,11 @@ import {
   decimal,
   index,
   integer,
+  json,
   pgEnum,
   pgTable,
   text,
+  timestamp,
   varchar,
 } from "drizzle-orm/pg-core"
 
@@ -55,7 +57,9 @@ export const orders = pgTable(
     name: text("name").notNull(),
     email: text("email").notNull(),
     phone: text("phone"),
-    note: text("note"), // e.g. cake message, delivery/collection instructions
+    note: text("note"), // e.g. general delivery/collection instructions
+    fulfillmentDate: timestamp("fulfillment_date"), // Scheduled date for pick-up or delivery
+    fulfillmentTimeSlot: text("fulfillment_time_slot"), // e.g. "09:00 - 11:00" or "Afternoon"
     subtotal: decimal("subtotal", { precision: 10, scale: 2 })
       .notNull()
       .default("0"),
@@ -121,6 +125,7 @@ export const orderItems = pgTable(
     unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
     quantity: integer("quantity").notNull().default(1),
     lineTotal: decimal("line_total", { precision: 10, scale: 2 }).notNull(),
+    customizations: json("customizations").$type<Record<string, any> | null>().default(null),
     createdAt: lifecycleDates.createdAt,
   },
   (table) => ({

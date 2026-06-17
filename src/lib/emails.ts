@@ -11,7 +11,7 @@ import OrderPlaced from "@/emails/order-placed";
 import OrderUpdate from "@/emails/order-update";
 import ContactUs from "@/emails/contact-us";
 
-const FROM_ADDRESS = env.EMAIL_FROM_ADDRESS || 'Dee-licious Bakes <hello@deeliciousbakes.co.uk>';
+const FROM_ADDRESS = env.EMAIL_FROM_ADDRESS || 'Deelicious Bakes <hello@deeliciousbakes.co.uk>';
 
 interface SendWelcomeOptions {
     to: string;
@@ -68,7 +68,7 @@ export async function sendWelcomeEmail({ to, customerName }: SendWelcomeOptions)
         const { data, error } = await resend.emails.send({
             from: FROM_ADDRESS,
             to: [to],
-            subject: "Welcome to Dee-licious Bakes! 🥐",
+            subject: "Welcome to Deelicious Bakes! 🥐",
             html,
         });
 
@@ -90,7 +90,7 @@ export async function sendVerificationEmail({ to, customerName, verificationUrl 
         const { data, error } = await resend.emails.send({
             from: FROM_ADDRESS,
             to: [to],
-            subject: "Verify your Dee-licious Bakes email address! ✉️",
+            subject: "Verify your Deelicious Bakes email address! ✉️",
             html,
         });
 
@@ -112,7 +112,7 @@ export async function sendForgotPasswordEmail({ to, customerName, resetUrl }: Se
         const { data, error } = await resend.emails.send({
             from: FROM_ADDRESS,
             to: [to],
-            subject: "Reset your Dee-licious Bakes password 🔒",
+            subject: "Reset your Deelicious Bakes password 🔒",
             html,
         });
 
@@ -134,7 +134,7 @@ export async function sendPasswordChangedEmail({ to, customerName }: SendPasswor
         const { data, error } = await resend.emails.send({
             from: FROM_ADDRESS,
             to: [to],
-            subject: "Your Dee-licious Bakes password has been changed 🔐",
+            subject: "Your Deelicious Bakes password has been changed 🔐",
             html,
         });
 

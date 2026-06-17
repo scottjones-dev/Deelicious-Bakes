@@ -21,7 +21,7 @@
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
 
-  /* Primary Brand Definitions (Extracts from Dee-licious Bakes Flyer) */
+  /* Primary Brand Definitions (Extracts from Deelicious Bakes Flyer) */
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -181,7 +181,7 @@
     @apply font-heading tracking-wide text-foreground/95;
   }
   
-  /* Custom Global Component Rules for Dee-licious Bakes */
+  /* Custom Global Component Rules for Deelicious Bakes */
   .signature-text {
     @apply font-signature italic normal-case tracking-normal text-primary;
   }

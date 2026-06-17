@@ -8,7 +8,7 @@ const links = {
 }
 
 export const siteConfig = {
-  name: "Dee-licious Bakes",
+  name: "Deelicious Bakes",
   description: "Handmade cakes, cupcakes, and celebration bakes in Salisbury.",
   url: "https://deeliciousbakes.co.uk",
   ogImage: "https://deeliciousbakes.co.uk/opengraph-image.png",

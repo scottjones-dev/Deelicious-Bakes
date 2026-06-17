@@ -5,7 +5,7 @@ import { Signature } from "@/components/ui/typography";
 import VerifyEmailContent from "./verify-email-content";
 
 export const metadata: Metadata = {
-    title: "Verify Email | Dee-licious Bakes",
+    title: "Verify Email | Deelicious Bakes",
 };
 
 export default function VerifyEmailPage() {

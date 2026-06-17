@@ -1,7 +1,9 @@
 import type { StoredFile } from "@/types"
 import { relations } from "drizzle-orm"
 import {
+  boolean,
   index,
+  integer,
   json,
   pgEnum,
   pgTable,
@@ -36,6 +38,9 @@ export const products = pgTable(
       .references(() => categories.id, { onDelete: "restrict" })
       .notNull(),
     status: productStatusEnum("status").notNull().default("active"),
+    leadTimeDays: integer("lead_time_days").notNull().default(0),
+    isCollectionOnly: boolean("is_collection_only").notNull().default(false),
+    availableDays: integer("available_days").array(), // e.g. [1, 2, 3, 4, 5, 6, 0] for Mon-Sun (0 is Sunday)
     ...lifecycleDates,
   },
   (table) => ({

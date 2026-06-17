@@ -3,7 +3,7 @@ import { SignupForm } from "@/components/auth/sign-up-form";
 import { Signature } from "@/components/ui/typography"; 
 
 export const metadata: Metadata = {
-    title: "Create an Account | Dee-licious Bakes",
+    title: "Create an Account | Deelicious Bakes",
 };
 
 export default function SignUpPage() {

@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   keywords: ["bakery", "cakes", "salisbury", "custom cakes", "cookies", "cupcakes"],
-  authors: [{ name: "Dee-licious Bakes" }],
-  creator: "Dee-licious Bakes",
+  authors: [{ name: "Deelicious Bakes" }],
+  creator: "Deelicious Bakes",
   metadataBase: new URL(siteConfig.url),
   openGraph: {
     type: "website",

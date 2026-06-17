@@ -5,7 +5,7 @@ import { Signature } from "@/components/ui/typography";
 import { Loader2 } from "lucide-react";
 
 export const metadata: Metadata = {
-    title: "Reset Password | Dee-licious Bakes",
+    title: "Reset Password | Deelicious Bakes",
 };
 
 export default function ResetPasswordPage() {

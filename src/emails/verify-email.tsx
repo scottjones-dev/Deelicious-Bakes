@@ -36,7 +36,7 @@ export const VerifyEmail = ({
       }}>
         Hi {customerName},
         <br /><br />
-        Thank you for joining Dee-licious Bakes! Before we can get your customer profile and billing portal activated, please confirm your email address by clicking the warm caramel action button below.
+        Thank you for joining Deelicious Bakes! Before we can get your customer profile and billing portal activated, please confirm your email address by clicking the warm caramel action button below.
       </Text>
 
       <Section style={{ margin: "24px 0" }}>

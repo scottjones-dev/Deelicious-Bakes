@@ -3,7 +3,7 @@ import { SigninForm } from "@/components/auth/sign-in-form";
 import { Signature } from "@/components/ui/typography";
 
 export const metadata: Metadata = {
-    title: "Sign In | Dee-licious Bakes",
+    title: "Sign In | Deelicious Bakes",
 };
 
 export default function SignInPage() {

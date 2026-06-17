@@ -6,7 +6,7 @@ export default function RootLoading() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground animate-in fade-in duration-500">
       <div className="flex flex-col items-center gap-6">
         <Signature className="text-5xl text-primary animate-pulse">
-          Dee-licious
+          Deelicious
         </Signature>
         <div className="flex flex-col items-center gap-2">
           <Spinner className="h-8 w-8 text-accent" />

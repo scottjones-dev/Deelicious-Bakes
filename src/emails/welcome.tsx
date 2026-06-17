@@ -25,7 +25,7 @@ export default function WelcomeEmail({
         margin: "0 0 28px 0",
         lineHeight: "1.1"
       }}>
-        Dee-licious Bakes
+        Deelicious Bakes
       </Heading>
 
       {/* Greeting String */}

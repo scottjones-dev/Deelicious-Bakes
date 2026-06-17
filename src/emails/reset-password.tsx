@@ -16,7 +16,7 @@ export const ResetPassword = ({
   unsubscribeUrl 
 }: ResetPasswordProps) => {
   return (
-    <EmailLayout previewText="Reset your Dee-licious Bakes password 🔒" unsubscribeUrl={unsubscribeUrl}>
+    <EmailLayout previewText="Reset your Deelicious Bakes password 🔒" unsubscribeUrl={unsubscribeUrl}>
       <Text style={{
         fontFamily: theme.fonts.heading,
         fontSize: "24px",
@@ -36,7 +36,7 @@ export const ResetPassword = ({
       }}>
         Hi {customerName},
         <br /><br />
-        We received a request to reset your password for your Dee-licious Bakes account. Click the button below to establish your new security credentials:
+        We received a request to reset your password for your Deelicious Bakes account. Click the button below to establish your new security credentials:
       </Text>
 
       <Section style={{ margin: "24px 0" }}>

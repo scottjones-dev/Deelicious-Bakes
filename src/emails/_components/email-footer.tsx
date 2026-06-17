@@ -27,7 +27,7 @@ export const EmailFooter = ({ unsubscribeUrl }: EmailFooterProps) => {
         margin: "0 0 12px 0",
         lineHeight: "1"
       }}>
-        Dee-licious Bakes
+        Deelicious Bakes
       </Text>
 
       {/* Transactional Legal & Footer Text */}
@@ -39,7 +39,7 @@ export const EmailFooter = ({ unsubscribeUrl }: EmailFooterProps) => {
         margin: "0",
         letterSpacing: "0.2px"
       }}>
-        You are receiving this email because you opted into updates from Dee-licious Bakes.
+        You are receiving this email because you opted into updates from Deelicious Bakes.
         <br />
         Salisbury, Wiltshire • 
         <a 

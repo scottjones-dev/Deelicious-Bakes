@@ -3,7 +3,7 @@ import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 import { Signature } from "@/components/ui/typography";
 
 export const metadata: Metadata = {
-    title: "Forgot Password | Dee-licious Bakes",
+    title: "Forgot Password | Deelicious Bakes",
 };
 
 export default function ForgotPasswordPage() {

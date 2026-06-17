@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { H1, Lead, P, Signature } from "@/components/ui/typography";
 
-export default function Home() {
+export default function HomePage() {
   return (
     /* Uses dynamic --background theme tokens mapping seamlessly across light/dark states */
     <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground font-sans px-6 transition-colors duration-300">
