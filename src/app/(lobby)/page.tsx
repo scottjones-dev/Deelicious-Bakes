@@ -16,6 +16,8 @@ import { H1, Lead, P, Signature } from "@/components/ui/typography";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 
+export const dynamic = "force-dynamic";
+
 // Category fallback imagery if none present in database
 const categoryFallbacks: Record<string, string> = {
   cupcakes:
