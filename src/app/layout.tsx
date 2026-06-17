@@ -13,6 +13,8 @@ import { ourFileRouter } from "./api/uploadthing/core";
 import { siteConfig } from "@/config/site";
 import { env } from "@/config/env";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -75,6 +77,8 @@ export default function RootLayout({
             <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
             {children}
             <Toaster closeButton expand position="bottom-right" richColors />
+            <Analytics />
+            <SpeedInsights />
             <TailwindIndicator />
           </TooltipProvider>
         </ThemeProvider>
