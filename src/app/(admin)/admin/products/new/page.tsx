@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft, Save, ShieldAlert, AlertCircle, Loader2, Leaf, Ban } from "lucide-react";
 import { AdminProductPhotoManager } from "@/components/uploadthing/product-uploader";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export default function AdminNewProductPage() {
   const router = useRouter();
@@ -37,6 +38,7 @@ export default function AdminNewProductPage() {
   };
 
   const handleSave = async (e: React.FormEvent) => {
+// TODO make live
     e.preventDefault();
     if (!title) {
       toast.error("Please enter a product title before saving.");

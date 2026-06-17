@@ -1,24 +1,32 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
 import {
+  Cake,
+  ChevronsUpDown,
   LayoutDashboard,
-  ShoppingBag,
-  ShoppingCart,
-  Users,
+  Loader2,
+  LogOut,
   Plus,
   Settings,
+  ShoppingBag,
+  ShoppingCart,
   Store,
-  LogOut,
-  ChevronsUpDown,
-  Cake,
-  Loader2,
+  Users,
 } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import type React from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -33,15 +41,20 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
+
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  isAction?: boolean;
+}
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
 
 interface AdminSidebarProps {
   user: {
@@ -58,7 +71,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const { state, isMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
 
-  const navigationGroups = [
+  const navigationGroups: NavGroup[] = [
     {
       title: "Overview",
       items: [
@@ -154,7 +167,11 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       <SidebarHeader className="border-b border-border p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild className="hover:bg-transparent">
+            <SidebarMenuButton
+              size="lg"
+              asChild
+              className="hover:bg-transparent"
+            >
               <Link href="/admin" className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm shrink-0">
                   <Cake className="h-5 w-5" />
@@ -199,15 +216,21 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                           item.isAction
                             ? "text-accent hover:bg-accent/10 hover:text-accent-foreground"
                             : isActive
-                            ? "bg-primary/10 text-primary font-semibold hover:bg-primary/15"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                              ? "bg-primary/10 text-primary font-semibold hover:bg-primary/15"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground",
                         )}
                       >
                         <Link href={item.href}>
-                          <item.icon className={cn(
-                            "h-4 w-4 shrink-0",
-                            item.isAction ? "text-accent" : isActive ? "text-primary" : "text-muted-foreground"
-                          )} />
+                          <item.icon
+                            className={cn(
+                              "h-4 w-4 shrink-0",
+                              item.isAction
+                                ? "text-accent"
+                                : isActive
+                                  ? "text-primary"
+                                  : "text-muted-foreground",
+                            )}
+                          />
                           <span>{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
@@ -231,7 +254,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                   className="w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    {user.image && <AvatarImage src={user.image} alt={user.name} />}
+                    {user.image && (
+                      <AvatarImage src={user.image} alt={user.name} />
+                    )}
                     <AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs font-semibold">
                       {getInitials(user.name)}
                     </AvatarFallback>
@@ -260,7 +285,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 <DropdownMenuLabel className="p-0 font-normal">
                   <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
-                      {user.image && <AvatarImage src={user.image} alt={user.name} />}
+                      {user.image && (
+                        <AvatarImage src={user.image} alt={user.name} />
+                      )}
                       <AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs font-semibold">
                         {getInitials(user.name)}
                       </AvatarFallback>
@@ -283,7 +310,10 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link href="/admin/settings" className="flex w-full items-center gap-2">
+                  <Link
+                    href="/admin/settings"
+                    className="flex w-full items-center gap-2"
+                  >
                     <Settings className="h-4 w-4" />
                     <span>Settings</span>
                   </Link>
