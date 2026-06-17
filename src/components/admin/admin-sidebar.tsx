@@ -6,6 +6,8 @@ import {
   LayoutDashboard,
   Loader2,
   LogOut,
+  Megaphone,
+  MessageSquare,
   Plus,
   Settings,
   ShoppingBag,
@@ -91,6 +93,11 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           icon: ShoppingBag,
         },
         {
+          title: "Categories",
+          href: "/admin/categories",
+          icon: Store,
+        },
+        {
           title: "Orders",
           href: "/admin/orders",
           icon: ShoppingCart,
@@ -99,6 +106,16 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           title: "Customers",
           href: "/admin/customers",
           icon: Users,
+        },
+        {
+          title: "Reviews",
+          href: "/admin/reviews",
+          icon: MessageSquare,
+        },
+        {
+          title: "Marketing",
+          href: "/admin/marketing",
+          icon: Megaphone,
         },
       ],
     },
