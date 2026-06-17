@@ -111,7 +111,7 @@ export default function SettingsPage() {
                   <Switch 
                     id="marketing-consent" 
                     name="marketing-consent" 
-                    defaultChecked={session.user.marketingConsent}
+                    defaultChecked={(session.user as any).marketingConsent}
                   />
                 </div>
               </div>
@@ -125,7 +125,7 @@ export default function SettingsPage() {
             </form>
           </CardContent>
         </Card>
-
+{/* TODO Remove this as customers wont see stripe this is admin only needs moved to admin */}
         {/* Security / Subscription Status */}
         <Card className="border-primary/10 shadow-sm bg-card/50 border-l-4 border-l-accent">
           <CardHeader>

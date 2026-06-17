@@ -25,43 +25,43 @@ export function AdminProductPhotoManager({ onImagesChanged }: AdminProductUpload
                         setProductPhotos(updatedList);
                         onImagesChanged(updatedList);
                     }}
-                    <div className="space-y-4">
-                        <div className="rounded-xl border-2 border-dashed border-border p-6 bg-muted/20">
-                            <UploadDropzone
-                                endpoint="adminProductUploader"
-                                onClientUploadComplete={(res) => {
-                    ...
-                        {/* Display Asset Row with structural identification mapping */}
-                        {productPhotos.length > 0 && (
-                            <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                                <h4 className="text-sm font-semibold text-foreground mb-3 font-heading">Staged Product Assets</h4>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    {productPhotos.map((photo) => (
-                                        <div key={photo.key} className="group relative aspect-video w-full overflow-hidden rounded-lg border border-border shadow-sm bg-muted/10">
-                                            <Image
-                                                src={photo.url}
-                                                alt="Catalog display asset"
-                                                fill
-                                                className="object-cover"
-                                            />
+                    onUploadError={(error: Error) => {
+                        console.error(`ERROR! ${error.message}`);
+                    }}
+                />
+            </div>
 
-                                            {/* Clear utility node if an asset was uploaded incorrectly */}
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const filtered = productPhotos.filter((p) => p.key !== photo.key);
-                                                    setProductPhotos(filtered);
-                                                    onImagesChanged(filtered);
-                                                }}
-                                                className="absolute right-1 top-1 rounded bg-destructive px-2 py-1 text-[10px] font-bold text-destructive-foreground opacity-0 transition group-hover:opacity-100 shadow-md"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
+            {/* Display Asset Row with structural identification mapping */}
+            {productPhotos.length > 0 && (
+                <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+                    <h4 className="text-sm font-semibold text-foreground mb-3 font-heading">Staged Product Assets</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        {productPhotos.map((photo) => (
+                            <div key={photo.key} className="group relative aspect-video w-full overflow-hidden rounded-lg border border-border shadow-sm bg-muted/10">
+                                <Image
+                                    src={photo.url}
+                                    alt="Catalog display asset"
+                                    fill
+                                    className="object-cover"
+                                />
+
+                                {/* Clear utility node if an asset was uploaded incorrectly */}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const filtered = productPhotos.filter((p) => p.key !== photo.key);
+                                        setProductPhotos(filtered);
+                                        onImagesChanged(filtered);
+                                    }}
+                                    className="absolute right-1 top-1 rounded bg-destructive px-2 py-1 text-[10px] font-bold text-destructive-foreground opacity-0 transition group-hover:opacity-100 shadow-md"
+                                >
+                                    Remove
+                                </button>
                             </div>
-                        )}
+                        ))}
                     </div>
+                </div>
+            )}
+        </div>
     );
 }

@@ -40,6 +40,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
             email,
             password,
             name,
+            // @ts-ignore
             marketingConsent,
             callbackURL: "/account",
         });
