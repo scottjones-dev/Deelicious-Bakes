@@ -6,7 +6,9 @@ import { syncMarketingConsent } from "@/lib/marketing-consent";
 import { resend } from "@/lib/resend";
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Internal server exception encountered.";
+  return error instanceof Error
+    ? error.message
+    : "Internal server exception encountered.";
 }
 
 export async function POST(request: Request) {
@@ -18,7 +20,7 @@ export async function POST(request: Request) {
     if (!session?.user) {
       return NextResponse.json(
         { error: "Unauthorized access. Please sign in." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -28,7 +30,7 @@ export async function POST(request: Request) {
     if (typeof subscribe !== "boolean") {
       return NextResponse.json(
         { error: "Invalid body parameter. 'subscribe' must be a boolean." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -58,7 +60,7 @@ export async function POST(request: Request) {
     console.error("❌ Failed to update communication preferences:", error);
     return NextResponse.json(
       { error: getErrorMessage(error) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

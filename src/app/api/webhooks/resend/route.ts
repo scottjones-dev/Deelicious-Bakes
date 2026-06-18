@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
-import { env } from "@/config/env";
-import { resend } from "@/lib/resend";
-import { syncMarketingConsent } from "@/lib/marketing-consent";
 import { WebhookVerificationError } from "standardwebhooks";
+import { env } from "@/config/env";
+import { syncMarketingConsent } from "@/lib/marketing-consent";
+import { resend } from "@/lib/resend";
 
 export async function POST(req: Request) {
   try {
+    if (!env.RESEND_WEBHOOK_SECRET) {
+      console.error("❌ RESEND_WEBHOOK_SECRET is not configured");
+      return NextResponse.json(
+        { error: "Webhook secret not configured" },
+        { status: 500 },
+      );
+    }
+
     const payload = await req.text();
     const headers = {
       id: req.headers.get("webhook-id") ?? "",
@@ -14,7 +22,10 @@ export async function POST(req: Request) {
     };
 
     if (!headers.id || !headers.timestamp || !headers.signature) {
-      return NextResponse.json({ error: "Missing webhook signature headers" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing webhook signature headers" },
+        { status: 400 },
+      );
     }
 
     const event = resend.webhooks.verify({
@@ -30,7 +41,7 @@ export async function POST(req: Request) {
       });
 
       console.log(
-        `📬 Resend status webhook sync: ${event.data.email} changed unsubscribed status to: ${event.data.unsubscribed}`
+        `📬 Resend status webhook sync: ${event.data.email} changed unsubscribed status to: ${event.data.unsubscribed}`,
       );
     }
 
@@ -40,6 +51,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     console.error("❌ Failed to process Resend webhook event:", error);
-    return NextResponse.json({ error: "Webhook event handler crashed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Webhook event handler crashed" },
+      { status: 500 },
+    );
   }
 }

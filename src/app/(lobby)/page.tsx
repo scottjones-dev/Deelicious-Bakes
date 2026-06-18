@@ -192,8 +192,8 @@ export default async function HomePage() {
                   Artisan Favorites
                 </h2>
                 <P className="text-muted-foreground">
-                  Our customers&apos; most-loved celebration bakes, fresh from the
-                  ovens.
+                  Our customers&apos; most-loved celebration bakes, fresh from
+                  the ovens.
                 </P>
               </div>
               <Button
@@ -289,8 +289,8 @@ export default async function HomePage() {
               Baked with Care in Salisbury
             </h2>
             <P className="text-muted-foreground">
-              Discover what makes Deelicious Bakes Salisbury&apos;s premier bespoke
-              bakery.
+              Discover what makes Deelicious Bakes Salisbury&apos;s premier
+              bespoke bakery.
             </P>
           </div>
 

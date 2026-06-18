@@ -75,8 +75,8 @@ export function NewOrderForm({ customers }: NewOrderFormProps) {
       const result = await createManualOrderAction({
         customerSelection: customerId ? "existing" : "new",
         customerId: customerId || undefined,
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
         phone: phone.trim() || undefined,
         note: note.trim() || undefined,
         fulfillmentMethod,
@@ -126,8 +126,8 @@ export function NewOrderForm({ customers }: NewOrderFormProps) {
                 Customer Profile
               </CardTitle>
               <CardDescription className="text-xs">
-                Link to an existing customer or capture snapshot details for this
-                order.
+                Link to an existing customer or capture snapshot details for
+                this order.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -343,7 +343,9 @@ export function NewOrderForm({ customers }: NewOrderFormProps) {
                   <option value="pending">Pending</option>
                   <option value="paid">Paid</option>
                   <option value="processing">Processing</option>
-                  <option value="ready_for_collection">Ready for Collection</option>
+                  <option value="ready_for_collection">
+                    Ready for Collection
+                  </option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                   <option value="refunded">Refunded</option>

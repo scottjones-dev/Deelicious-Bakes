@@ -1,15 +1,15 @@
-import { ChevronLeft } from "lucide-react";
-import Link from "next/link";
-import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
+import { ChevronLeft } from "lucide-react";
+import { headers } from "next/headers";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { H2, P } from "@/components/ui/typography";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
-import { formatPrice } from "@/lib/utils";
 import { auth } from "@/lib/auth";
+import { formatPrice } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +49,8 @@ export default async function OrderDetailPage({
   }
 
   const order = await db.query.orders.findFirst({
-    where: (orders) => and(eq(orders.id, orderId), eq(orders.customerId, customerRecord.id)),
+    where: (orders) =>
+      and(eq(orders.id, orderId), eq(orders.customerId, customerRecord.id)),
     with: {
       items: true,
     },
@@ -94,12 +95,18 @@ export default async function OrderDetailPage({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-medium text-foreground">{item.productName}</p>
+                      <p className="font-medium text-foreground">
+                        {item.productName}
+                      </p>
                       {item.variantName ? (
-                        <p className="text-xs text-muted-foreground">{item.variantName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.variantName}
+                        </p>
                       ) : null}
                     </div>
-                    <p className="font-semibold text-foreground">{formatPrice(item.lineTotal)}</p>
+                    <p className="font-semibold text-foreground">
+                      {formatPrice(item.lineTotal)}
+                    </p>
                   </div>
                   <div className="mt-2 text-xs text-muted-foreground">
                     Qty {item.quantity} × {formatPrice(item.unitPrice)}
@@ -128,7 +135,9 @@ export default async function OrderDetailPage({
             {order.fulfillmentDate ? (
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Target Date</span>
-                <span>{new Date(order.fulfillmentDate).toLocaleDateString("en-GB")}</span>
+                <span>
+                  {new Date(order.fulfillmentDate).toLocaleDateString("en-GB")}
+                </span>
               </div>
             ) : null}
             <div className="flex items-center justify-between">
@@ -146,7 +155,9 @@ export default async function OrderDetailPage({
             {order.note ? (
               <div className="border-t border-border/60 pt-3 space-y-1">
                 <p className="text-muted-foreground">Order Notes</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{order.note}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {order.note}
+                </p>
               </div>
             ) : null}
           </CardContent>

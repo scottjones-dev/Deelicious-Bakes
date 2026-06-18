@@ -1,15 +1,21 @@
-import Link from "next/link";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { Package } from "lucide-react";
+import { headers } from "next/headers";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { H2, P } from "@/components/ui/typography";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
-import { formatPrice } from "@/lib/utils";
 import { auth } from "@/lib/auth";
+import { formatPrice } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +49,10 @@ export default async function OrdersPage() {
   }
 
   const customerRecord = await db.query.customers.findFirst({
-    where: eq(customers.userId, session.user.id),
+    where: or(
+      eq(customers.userId, session.user.id),
+      eq(customers.email, session.user.email),
+    ),
   });
 
   const orderList = customerRecord
@@ -60,7 +69,9 @@ export default async function OrdersPage() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="space-y-1">
         <H2 className="font-heading">Order History</H2>
-        <P className="text-muted-foreground">Keep track of your current and past bakes.</P>
+        <P className="text-muted-foreground">
+          Keep track of your current and past bakes.
+        </P>
       </div>
 
       {orderList.length === 0 ? (
@@ -72,10 +83,14 @@ export default async function OrdersPage() {
             <div className="space-y-1">
               <p className="font-medium text-foreground">No orders yet</p>
               <p className="text-sm text-muted-foreground max-w-xs">
-                Looks like you haven&apos;t ordered any treats yet. Once you do, they will appear here.
+                Looks like you haven&apos;t ordered any treats yet. Once you do,
+                they will appear here.
               </p>
             </div>
-            <Link href="/" className="mt-2 text-sm text-primary hover:underline font-medium">
+            <Link
+              href="/"
+              className="mt-2 text-sm text-primary hover:underline font-medium"
+            >
               Browse the Menu
             </Link>
           </CardContent>
@@ -85,7 +100,8 @@ export default async function OrdersPage() {
           <CardHeader>
             <CardTitle className="font-heading">Your Orders</CardTitle>
             <CardDescription>
-              Open an order to see contact snapshots, totals, and fulfillment details.
+              Open an order to see contact snapshots, totals, and fulfillment
+              details.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -97,9 +113,12 @@ export default async function OrdersPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <p className="text-sm font-semibold text-foreground">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      Order #{order.id.slice(0, 8).toUpperCase()}
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      Placed {new Date(order.createdAt).toLocaleDateString("en-GB")}
+                      Placed{" "}
+                      {new Date(order.createdAt).toLocaleDateString("en-GB")}
                     </p>
                   </div>
                   <Badge
@@ -113,10 +132,13 @@ export default async function OrdersPage() {
                   <span className="text-muted-foreground capitalize">
                     {order.fulfillmentMethod}
                     <span className="ml-2 text-xs">
-                      • {order.items.length} {order.items.length === 1 ? "item" : "items"}
+                      • {order.items.length}{" "}
+                      {order.items.length === 1 ? "item" : "items"}
                     </span>
                   </span>
-                  <span className="font-semibold text-foreground">{formatPrice(order.total)}</span>
+                  <span className="font-semibold text-foreground">
+                    {formatPrice(order.total)}
+                  </span>
                 </div>
               </Link>
             ))}

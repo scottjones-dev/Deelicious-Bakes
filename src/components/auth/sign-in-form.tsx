@@ -23,10 +23,13 @@ export function SigninForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, setIsPending] = useState(false);
-  const callbackUrl =
-    searchParams.get("callbackUrl") ??
-    searchParams.get("callbackURL") ??
-    "/account";
+  const callbackUrl = (() => {
+    const raw =
+      searchParams.get("callbackUrl") ??
+      searchParams.get("callbackURL") ??
+      "/account";
+    return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/account";
+  })();
   const signUpHref =
     callbackUrl === "/account"
       ? "/sign-up"

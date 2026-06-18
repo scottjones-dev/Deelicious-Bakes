@@ -26,10 +26,13 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [emailSentTo, setEmailSentTo] = useState("");
-  const callbackUrl =
-    searchParams.get("callbackUrl") ??
-    searchParams.get("callbackURL") ??
-    "/account";
+  const callbackUrl = (() => {
+    const raw =
+      searchParams.get("callbackUrl") ??
+      searchParams.get("callbackURL") ??
+      "/account";
+    return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/account";
+  })();
   const signInHref =
     callbackUrl === "/account"
       ? "/sign-in"

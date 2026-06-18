@@ -31,7 +31,7 @@ export function NewCustomerForm() {
     startTransition(async () => {
       const result = await onboardCustomerAction({
         name: name.trim() || "Customer",
-        email,
+        email: email.trim().toLowerCase(),
         phone: phone.trim() || undefined,
         marketingConsent,
       });
@@ -208,8 +208,8 @@ export function NewCustomerForm() {
                   Operations Guard
                 </h5>
                 <p className="text-[11px] text-muted-foreground leading-relaxed font-light">
-                  Customer records use the live CRM schema and appear immediately
-                  in the customers directory.
+                  Customer records use the live CRM schema and appear
+                  immediately in the customers directory.
                 </p>
               </div>
             </CardContent>

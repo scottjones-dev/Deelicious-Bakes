@@ -1,27 +1,35 @@
 import { z } from "zod";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.url().default("http://localhost:3000"),
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
 
-  DATABASE_URL: z
-    .string()
-    .min(1)
-    .default("postgresql://mock_user:mock_pass@localhost:5432/mock_db"),
+  DATABASE_URL: isProduction
+    ? z.string().min(1)
+    : z
+        .string()
+        .min(1)
+        .default("postgresql://mock_user:mock_pass@localhost:5432/mock_db"),
 
-  BETTER_AUTH_SECRET: z
-    .string()
-    .min(1)
-    .default("mock-secret-key-for-compilation-verification-only"),
+  BETTER_AUTH_SECRET: isProduction
+    ? z.string().min(1)
+    : z
+        .string()
+        .min(1)
+        .default("mock-secret-key-for-compilation-verification-only"),
   BETTER_AUTH_URL: z.url().default("http://localhost:3000"),
   ADMIN_EMAIL: z.email().optional(),
 
   RESEND_API_KEY: z.string().optional(),
   RESEND_AUDIENCE_ID: z.string().optional(),
   EMAIL_FROM_ADDRESS: z.email().optional(),
-  RESEND_WEBHOOK_SECRET: z.string().default("dummy_secret"),
+  RESEND_WEBHOOK_SECRET: isProduction
+    ? z.string().min(1)
+    : z.string().default("dummy_secret"),
 
   UPLOADTHING_TOKEN: z.string().optional(),
 
@@ -30,7 +38,9 @@ const envSchema = z.object({
 
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
-  STRIPE_WEBHOOK_SECRET: z.string().default("dummy_secret"),
+  STRIPE_WEBHOOK_SECRET: isProduction
+    ? z.string().min(1)
+    : z.string().default("dummy_secret"),
 
   NEXT_PUBLIC_UMAMI_WEBSITE_ID: z.string().optional(),
   TRUSTED_ORIGINS: z.string().optional(),
