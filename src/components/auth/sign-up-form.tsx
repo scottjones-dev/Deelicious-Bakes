@@ -1,6 +1,7 @@
 "use client";
 import { Loader2, MailCheck } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -21,9 +22,21 @@ import { authClient } from "@/lib/auth-client";
 
 export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [emailSentTo, setEmailSentTo] = useState("");
+  const callbackUrl = (() => {
+    const raw =
+      searchParams.get("callbackUrl") ??
+      searchParams.get("callbackURL") ??
+      "/account";
+    return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/account";
+  })();
+  const signInHref =
+    callbackUrl === "/account"
+      ? "/sign-in"
+      : `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -46,9 +59,9 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
       email,
       password,
       name,
-      // @ts-expect-error
+      // @ts-expect-error additional Better Auth field configured server-side
       marketingConsent,
-      callbackURL: "/account",
+      callbackURL: callbackUrl,
     });
 
     setIsPending(false);
@@ -81,7 +94,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
           <Button
             variant="outline"
             className="w-full mt-4"
-            onClick={() => router.push("/sign-in")}
+            onClick={() => router.push(signInHref)}
           >
             Back to Sign In
           </Button>
@@ -177,12 +190,12 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
 
               <P className="text-center text-xs text-muted-foreground">
                 Already have an account?{" "}
-                <a
-                  href="/sign-in"
+                <Link
+                  href={signInHref}
                   className="text-primary hover:underline font-medium"
                 >
                   Sign in
-                </a>
+                </Link>
               </P>
             </div>
           </FieldGroup>

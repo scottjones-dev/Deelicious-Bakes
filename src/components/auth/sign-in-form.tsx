@@ -1,7 +1,8 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -20,7 +21,19 @@ import { authClient } from "@/lib/auth-client";
 
 export function SigninForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, setIsPending] = useState(false);
+  const callbackUrl = (() => {
+    const raw =
+      searchParams.get("callbackUrl") ??
+      searchParams.get("callbackURL") ??
+      "/account";
+    return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/account";
+  })();
+  const signUpHref =
+    callbackUrl === "/account"
+      ? "/sign-up"
+      : `/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,7 +46,7 @@ export function SigninForm({ ...props }: React.ComponentProps<typeof Card>) {
     const result = await authClient.signIn.email({
       email,
       password,
-      callbackURL: "/account",
+      callbackURL: callbackUrl,
     });
 
     setIsPending(false);
@@ -44,7 +57,7 @@ export function SigninForm({ ...props }: React.ComponentProps<typeof Card>) {
     }
 
     toast.success("Signed in successfully!");
-    router.push("/account");
+    router.push(callbackUrl);
   }
 
   return (
@@ -74,13 +87,12 @@ export function SigninForm({ ...props }: React.ComponentProps<typeof Card>) {
             <Field>
               <div className="flex items-center justify-between">
                 <FieldLabel htmlFor="password">Password</FieldLabel>
-                <a
+                <Link
                   href="/forgot-password"
-                  virtual-href="/forgot-password"
                   className="text-xs text-primary hover:underline font-medium"
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
               <Input
                 id="password"
@@ -105,13 +117,12 @@ export function SigninForm({ ...props }: React.ComponentProps<typeof Card>) {
 
               <P className="text-center text-xs text-muted-foreground">
                 Don't have an account?{" "}
-                <a
-                  href="/sign-up"
-                  virtual-href="/sign-up"
+                <Link
+                  href={signUpHref}
                   className="text-primary hover:underline font-medium"
                 >
                   Sign up
-                </a>
+                </Link>
               </P>
             </div>
           </FieldGroup>

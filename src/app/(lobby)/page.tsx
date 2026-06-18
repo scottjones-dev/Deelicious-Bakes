@@ -18,7 +18,6 @@ import { products } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
 
-// Category fallback imagery if none present in database
 const categoryFallbacks: Record<string, string> = {
   cupcakes:
     "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600",
@@ -31,7 +30,6 @@ const categoryFallbacks: Record<string, string> = {
 };
 
 export default async function HomePage() {
-  // Query all categories dynamically
   const dbCategories = await db.query.categories.findMany({
     columns: {
       id: true,
@@ -42,7 +40,6 @@ export default async function HomePage() {
     },
   });
 
-  // Query 4 featured active products from database
   const dbProducts = await db.query.products.findMany({
     limit: 4,
     where: eq(products.status, "active"),
@@ -53,18 +50,15 @@ export default async function HomePage() {
 
   return (
     <div className="relative min-h-screen flex flex-col bg-background text-foreground transition-colors duration-500 overflow-x-hidden selection:bg-primary/20 selection:text-primary">
-      {/* Warm Ambient Glows */}
       <div className="absolute top-0 left-1/4 -translate-x-1/2 w-125 h-125 rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-10 right-0 w-100 h-100 rounded-full bg-accent/5 blur-[100px] pointer-events-none" />
 
-      {/* Hero Section */}
       <section className="relative w-full py-16 md:py-28 border-b border-border/20 bg-linear-to-b from-primary/5 via-transparent to-transparent">
         <div className="container max-w-6xl mx-auto px-6 grid gap-12 lg:grid-cols-12 items-center">
-          {/* Hero Content */}
           <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wide border border-primary/20">
               <Sparkles className="size-3.5 animate-pulse" />
-              Salisbury's Artisan Celebration Bakery
+              Salisbury&apos;s Artisan Celebration Bakery
             </div>
             <div className="space-y-3">
               <Signature className="text-6xl md:text-8xl text-primary drop-shadow-sm select-none block">
@@ -80,7 +74,6 @@ export default async function HomePage() {
               traybakes, and elegant macarons for your most treasured moments.
             </Lead>
 
-            {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto pt-2">
               <Button
                 size="lg"
@@ -112,7 +105,6 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Hero Decorative Visual */}
           <div className="lg:col-span-5 flex items-center justify-center relative select-none">
             <div className="absolute inset-0 bg-radial-gradient(circle,rgba(var(--primary),0.05)_0%,transparent_70%) blur-3xl pointer-events-none" />
             <div className="relative w-80 h-80 md:w-96 md:h-96 rounded-2xl overflow-hidden border border-border/40 shadow-xl rotate-3 hover:rotate-0 transition-transform duration-500">
@@ -128,7 +120,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Category Showcase Section */}
       <section
         id="categories"
         className="w-full py-16 md:py-24 border-b border-border/20"
@@ -192,7 +183,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products Section */}
       {dbProducts.length > 0 && (
         <section className="w-full py-16 md:py-24 border-b border-border/20 bg-secondary/10">
           <div className="container max-w-6xl mx-auto px-6 space-y-12">
@@ -202,8 +192,8 @@ export default async function HomePage() {
                   Artisan Favorites
                 </h2>
                 <P className="text-muted-foreground">
-                  Our customers' most-loved celebration bakes, fresh from the
-                  ovens.
+                  Our customers&apos; most-loved celebration bakes, fresh from
+                  the ovens.
                 </P>
               </div>
               <Button
@@ -223,7 +213,6 @@ export default async function HomePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {dbProducts.map((product) => {
-                // Resolve product image
                 let productImg =
                   "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=400";
                 if (
@@ -287,14 +276,12 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Decorative Divider */}
       <div className="flex items-center justify-center gap-3 w-full max-w-md mx-auto py-8">
         <div className="h-px bg-border/60 flex-1" />
         <Heart className="size-4 text-primary/70 fill-primary/10" />
         <div className="h-px bg-border/60 flex-1" />
       </div>
 
-      {/* USP Section (Our Sweet Pillars) */}
       <section className="w-full py-16 md:py-24">
         <div className="container max-w-6xl mx-auto px-6 space-y-12">
           <div className="text-center max-w-xl mx-auto space-y-1.5">
@@ -302,13 +289,12 @@ export default async function HomePage() {
               Baked with Care in Salisbury
             </h2>
             <P className="text-muted-foreground">
-              Discover what makes Deelicious Bakes Salisbury's premier bespoke
-              bakery.
+              Discover what makes Deelicious Bakes Salisbury&apos;s premier
+              bespoke bakery.
             </P>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Pillar 1 */}
             <div className="flex flex-col items-center text-center p-8 bg-card/30 border border-border/50 rounded-2xl shadow-sm hover:border-primary/30 transition-all duration-300 group">
               <div className="size-14 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-5 group-hover:scale-110 transition-transform duration-300">
                 <Cookie className="size-7" />
@@ -323,7 +309,6 @@ export default async function HomePage() {
               </P>
             </div>
 
-            {/* Pillar 2 */}
             <div className="flex flex-col items-center text-center p-8 bg-card/30 border border-border/50 rounded-2xl shadow-sm hover:border-primary/30 transition-all duration-300 group">
               <div className="size-14 rounded-full bg-accent/10 flex items-center justify-center text-accent mb-5 group-hover:scale-110 transition-transform duration-300">
                 <Cake className="size-7" />
@@ -338,7 +323,6 @@ export default async function HomePage() {
               </P>
             </div>
 
-            {/* Pillar 3 */}
             <div className="flex flex-col items-center text-center p-8 bg-card/30 border border-border/50 rounded-2xl shadow-sm hover:border-primary/30 transition-all duration-300 group">
               <div className="size-14 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-5 group-hover:scale-110 transition-transform duration-300">
                 <MapPin className="size-7" />

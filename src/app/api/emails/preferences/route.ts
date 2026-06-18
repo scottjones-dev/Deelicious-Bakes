@@ -1,36 +1,31 @@
 import { NextResponse } from "next/server";
+
 import { env } from "@/config/env";
 import { auth } from "@/lib/auth";
+import { syncMarketingConsent } from "@/lib/marketing-consent";
 import { resend } from "@/lib/resend";
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error
+    ? error.message
+    : "Internal server exception encountered.";
+}
 
 export async function POST(request: Request) {
   try {
-    // 1. Authenticate the user session via Better-Auth
     const session = await auth.api.getSession({
       headers: request.headers,
     });
 
-    if (!session || !session.user) {
+    if (!session?.user) {
       return NextResponse.json(
         { error: "Unauthorized access. Please sign in." },
         { status: 401 },
       );
     }
 
-    // 2. Safeguard against missing environment variables
-    if (!env.RESEND_AUDIENCE_ID) {
-      console.error(
-        "❌ Missing RESEND_AUDIENCE_ID in your configuration variables.",
-      );
-      return NextResponse.json(
-        { error: "Email service configuration missing." },
-        { status: 500 },
-      );
-    }
-
-    // 3. Parse the intended preference change from the request body
     const body = await request.json();
-    const { subscribe } = body; // Expects a boolean: true to resubscribe, false to unsubscribe
+    const { subscribe } = body;
 
     if (typeof subscribe !== "boolean") {
       return NextResponse.json(
@@ -39,43 +34,32 @@ export async function POST(request: Request) {
       );
     }
 
-    const targetEmail = session.user.email;
+    await syncMarketingConsent({
+      email: session.user.email,
+      userId: session.user.id,
+      name: session.user.name,
+      marketingConsent: subscribe,
+    });
 
-    if (subscribe) {
-      // 🔄 RESUB SCRIBE: Update the contact setting 'unsubscribed' to false
+    if (env.RESEND_AUDIENCE_ID) {
       await resend.contacts.update({
         audienceId: env.RESEND_AUDIENCE_ID,
-        id: targetEmail, // Resend accepts the email string as the identifier here
-        unsubscribed: false,
-      });
-
-      console.log(`✅ Resubscribed ${targetEmail} to marketing updates.`);
-      return NextResponse.json({
-        success: true,
-        subscribed: true,
-        message:
-          "You have been successfully resubscribed to our bakery updates! 🥐",
-      });
-    } else {
-      // 🔒 UNSUBSCRIBE: Update the contact setting 'unsubscribed' to true
-      await resend.contacts.update({
-        audienceId: env.RESEND_AUDIENCE_ID,
-        id: targetEmail,
-        unsubscribed: true,
-      });
-
-      console.log(`❌ Unsubscribed ${targetEmail} from marketing updates.`);
-      return NextResponse.json({
-        success: true,
-        subscribed: false,
-        message:
-          "You have been unsubscribed. You will only receive transactional receipts. 🔒",
+        id: session.user.email,
+        unsubscribed: !subscribe,
       });
     }
-  } catch (error: any) {
+
+    return NextResponse.json({
+      success: true,
+      subscribed: subscribe,
+      message: subscribe
+        ? "You have been successfully resubscribed to our bakery updates! 🥐"
+        : "You have been unsubscribed. You will only receive transactional receipts. 🔒",
+    });
+  } catch (error: unknown) {
     console.error("❌ Failed to update communication preferences:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server exception encountered." },
+      { error: getErrorMessage(error) },
       { status: 500 },
     );
   }

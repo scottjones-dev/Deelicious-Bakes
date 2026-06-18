@@ -9,27 +9,48 @@ import { payments } from "@/db/schema/payments";
 import { stockMovements, stocks } from "@/db/schema/stocks";
 import { stripe } from "@/lib/stripe";
 
+type StripeWebhookCheckoutSession = {
+  metadata?: {
+    orderId?: string;
+    cartId?: string;
+  } | null;
+  payment_intent: string | null;
+  latest_charge?: string | null;
+  amount_total: number | null;
+  currency: string | null;
+};
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export async function POST(req: Request) {
   const body = await req.text();
   const signature = (await headers()).get("Stripe-Signature") as string;
 
-  let event;
+  if (!env.STRIPE_WEBHOOK_SECRET) {
+    console.error("❌ STRIPE_WEBHOOK_SECRET is not configured");
+    return new NextResponse("Webhook secret not configured", { status: 500 });
+  }
+
+  let event: { type: string; data: { object: unknown } };
 
   // 🔒 Verify that the incoming request actually came from Stripe
   try {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      env.STRIPE_WEBHOOK_SECRET!,
+      env.STRIPE_WEBHOOK_SECRET,
     );
-  } catch (err: any) {
-    console.error(`❌ Webhook signature verification failed: ${err.message}`);
-    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    console.error(`❌ Webhook signature verification failed: ${message}`);
+    return new NextResponse(`Webhook Error: ${message}`, { status: 400 });
   }
 
   // Handle Checkout Completion
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object as any;
+    const session = event.data.object as StripeWebhookCheckoutSession;
     const orderId = session.metadata?.orderId;
     const cartId = session.metadata?.cartId;
 
@@ -111,7 +132,11 @@ export async function POST(req: Request) {
         if (process.env.TRIGGER_SECRET_KEY) {
           // We dynamically require it here so it NEVER runs during 'next build'
           const { tasks } = await import("@trigger.dev/sdk/v3");
-          await tasks.trigger("send-order-placed-email", { orderId });
+          await tasks.trigger(
+            "send-order-placed-email",
+            { orderId },
+            { idempotencyKey: `order-email-${orderId}` },
+          );
         } else {
           console.log(
             "⏭️ Skipping task trigger during build environment verification.",

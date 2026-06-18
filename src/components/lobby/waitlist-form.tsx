@@ -52,8 +52,8 @@ export function WaitlistForm() {
         </h3>
         <p className="font-sans text-sm text-muted-foreground leading-relaxed mb-6">
           Thank you for joining Deelicious Bakes! We've sent a sweet welcome
-          email to your inbox. We'll let you know as soon as our bakery is fully
-          open for orders.
+          email to your inbox. We'll keep you posted on launch dates, menu
+          updates, and first-order access.
         </p>
         <Button
           variant="outline"
@@ -108,7 +108,7 @@ export function WaitlistForm() {
           </>
         ) : (
           <>
-            <span>Keep Me Updated</span>
+            <span>Join the Waitlist</span>
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
           </>
         )}
