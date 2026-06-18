@@ -98,28 +98,3 @@ jobs:
           NEXT_PUBLIC_SENTRY_DSN: https://mock@mock.ingest.sentry.io/mock
           SENTRY_AUTH_TOKEN: mock-sentry-token
           NODE_ENV: production
-
-  deploy-trigger:
-    name: Deploy Trigger.dev Tasks
-    runs-on: ubuntu-latest
-    needs: build
-    # Only run on branch pushes (not PRs) to master or main
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-          cache: true
-
-      - name: Install Dependencies
-        run: bun install --frozen-lockfile
-
-      - name: 🚀 Deploy Trigger.dev Tasks
-        env:
-          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
-        run: |
-          bun x trigger.dev@latest deploy
