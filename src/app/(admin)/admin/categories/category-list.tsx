@@ -4,7 +4,7 @@ import { Layers, Loader2, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { deleteCategory } from "@/app/actions/admin";
+import { deleteCategory } from "@/app/actions/category";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

@@ -8,13 +8,27 @@ import { carts } from "@/db/schema/carts";
 import { stocks, stockMovements } from "@/db/schema/stocks";
 import { eq } from "drizzle-orm";
 import { env } from "@/config/env";
-import { tasks } from "@trigger.dev/sdk/v3";
+
+type StripeWebhookCheckoutSession = {
+  metadata?: {
+    orderId?: string;
+    cartId?: string;
+  } | null;
+  payment_intent: string | null;
+  latest_charge?: string | null;
+  amount_total: number | null;
+  currency: string | null;
+};
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 export async function POST(req: Request) {
   const body = await req.text();
   const signature = (await headers()).get("Stripe-Signature") as string;
 
-  let event;
+  let event: { type: string; data: { object: unknown } };
 
   // 🔒 Verify that the incoming request actually came from Stripe
   try {
@@ -23,14 +37,15 @@ export async function POST(req: Request) {
       signature,
       env.STRIPE_WEBHOOK_SECRET!
     );
-  } catch (err: any) {
-    console.error(`❌ Webhook signature verification failed: ${err.message}`);
-    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    console.error(`❌ Webhook signature verification failed: ${message}`);
+    return new NextResponse(`Webhook Error: ${message}`, { status: 400 });
   }
 
   // Handle Checkout Completion
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object as any;
+    const session = event.data.object as StripeWebhookCheckoutSession;
     const orderId = session.metadata?.orderId;
     const cartId = session.metadata?.cartId;
 

@@ -3,19 +3,16 @@
 import {
   AlertCircle,
   ArrowLeft,
-  Ban,
-  Leaf,
   Loader2,
   PoundSterling,
   Save,
-  ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { createProduct } from "@/app/actions/admin";
+import { createProduct } from "@/app/actions/product";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,7 +24,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { H1, P } from "@/components/ui/typography";
 import { AdminProductPhotoManager } from "@/components/uploadthing/product-uploader";
-import { cn } from "@/lib/utils";
 
 interface CreateProductFormProps {
   categories: Array<{
@@ -50,19 +46,6 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
   const [status, setStatus] = useState("draft");
   const [categoryId, setCategoryId] = useState(categories[0]?.id || "");
   const [images, setImages] = useState<Array<{ url: string; key: string }>>([]);
-
-  // Food Safety States (Natasha's Law Compliance)
-  const [ingredients, setIngredients] = useState("");
-  const [allergens, setAllergens] = useState("");
-  const [selectedDietaryTags, setSelectedDietaryTags] = useState<string[]>([]);
-
-  const handleDietaryTagToggle = (tagName: string) => {
-    if (selectedDietaryTags.includes(tagName)) {
-      setSelectedDietaryTags(selectedDietaryTags.filter((t) => t !== tagName));
-    } else {
-      setSelectedDietaryTags([...selectedDietaryTags, tagName]);
-    }
-  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,29 +103,6 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
       }
     });
   };
-
-  const availableDietaryTags = [
-    {
-      name: "Gluten-Free",
-      icon: Ban,
-      color: "text-amber-500 bg-amber-500/10 border-amber-500/20",
-    },
-    {
-      name: "Vegan",
-      icon: Leaf,
-      color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
-    },
-    {
-      name: "Nut-Free",
-      icon: Ban,
-      color: "text-rose-500 bg-rose-500/10 border-rose-500/20",
-    },
-    {
-      name: "Dairy-Free",
-      icon: Ban,
-      color: "text-sky-500 bg-sky-500/10 border-sky-500/20",
-    },
-  ];
 
   return (
     <form onSubmit={handleSave} className="space-y-6">
@@ -215,7 +175,7 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
                   id="product-description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Provide a delicious description, allergens, and serving size details..."
+                  placeholder="Provide a delicious description, flavour notes, serving size details..."
                   rows={4}
                   disabled={isPending}
                   className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground font-light focus:outline-none focus:ring-1 focus:ring-primary resize-none"
@@ -255,99 +215,6 @@ export function CreateProductForm({ categories }: CreateProductFormProps) {
                   disabled={isPending}
                   required
                 />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Food Safety, Ingredients & Allergens (Natasha's Law Compliant) */}
-          <Card className="border border-rose-500/20 bg-rose-500/2">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <ShieldAlert className="h-5 w-5 text-rose-500" />
-                <CardTitle className="text-sm font-bold uppercase tracking-wider text-rose-500">
-                  Ingredients & Food Safety
-                </CardTitle>
-              </div>
-              <CardDescription className="text-xs text-muted-foreground/80">
-                Natasha&apos;s Law Compliant. Specify ingredients and highlight
-                allergens clearly for customers.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Dietary Classifications */}
-              <div className="space-y-3">
-                <span className="text-xs font-bold text-foreground uppercase tracking-wider block">
-                  Dietary Classifications (Storefront Badges)
-                </span>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {availableDietaryTags.map((tag) => {
-                    const TagIcon = tag.icon;
-                    const isSelected = selectedDietaryTags.includes(tag.name);
-                    return (
-                      <button
-                        key={tag.name}
-                        type="button"
-                        onClick={() => handleDietaryTagToggle(tag.name)}
-                        disabled={isPending}
-                        className={cn(
-                          "flex items-center gap-2 justify-center px-3 py-2.5 rounded-lg border text-xs font-medium transition-all cursor-pointer",
-                          isSelected
-                            ? `${tag.color} border-current font-bold ring-1 ring-current`
-                            : "bg-background border-border text-muted-foreground hover:bg-muted",
-                        )}
-                      >
-                        <TagIcon className="h-3.5 w-3.5 shrink-0" />
-                        <span>{tag.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Full Ingredients Formulation */}
-              <div className="grid gap-2">
-                <label
-                  htmlFor="product-ingredients"
-                  className="text-xs font-bold text-foreground uppercase tracking-wider"
-                >
-                  Ingredients Statement
-                </label>
-                <textarea
-                  id="product-ingredients"
-                  value={ingredients}
-                  onChange={(e) => setIngredients(e.target.value)}
-                  placeholder="e.g. Wheat flour (gluten), organic strawberries, free-range eggs, milk butter, sugar, vanilla extract."
-                  rows={3}
-                  disabled={isPending}
-                  className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground font-light focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-                />
-                <span className="text-[10px] text-muted-foreground font-light">
-                  List ingredients in descending order of weight. Highlight
-                  specific allergy-inducing items.
-                </span>
-              </div>
-
-              {/* Highlighted Allergens */}
-              <div className="grid gap-2">
-                <label
-                  htmlFor="product-allergens"
-                  className="text-xs font-bold text-rose-500 uppercase tracking-wider"
-                >
-                  Explicit Allergen Warnings
-                </label>
-                <input
-                  id="product-allergens"
-                  type="text"
-                  value={allergens}
-                  onChange={(e) => setAllergens(e.target.value)}
-                  placeholder="e.g. Wheat (Gluten), Eggs, Dairy, Soy. May contain traces of nuts."
-                  disabled={isPending}
-                  className="w-full px-3 py-2 text-sm bg-background border border-rose-500/20 text-rose-600 font-medium placeholder:text-muted-foreground/60 rounded-lg focus:outline-none focus:ring-1 focus:ring-rose-500"
-                />
-                <span className="text-[10px] text-rose-500/80 font-light">
-                  This statement will be flagged with a warning icon on the
-                  product page.
-                </span>
               </div>
             </CardContent>
           </Card>
