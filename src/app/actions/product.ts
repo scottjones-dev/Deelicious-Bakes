@@ -198,31 +198,139 @@ async function upsertProductRecipe({
 export async function filterProducts({ query }: { query: string }) {
   noStore();
   try {
-    if (query.length === 0) {
+    const normalizedQuery = query.trim();
+    if (normalizedQuery.length === 0) {
       return {
         data: null,
         error: null,
       };
     }
 
-    const categoriesWithProducts = await db.query.categories.findMany({
+    const directProductMatches = await db.query.products.findMany({
       columns: {
         id: true,
         name: true,
+        slug: true,
+        description: true,
       },
+      with: {
+        category: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+      where: (table, { and, eq, or, ilike }) =>
+        and(
+          eq(table.status, "active"),
+          or(
+            ilike(table.name, `%${normalizedQuery}%`),
+            ilike(table.slug, `%${normalizedQuery}%`),
+            ilike(table.description, `%${normalizedQuery}%`),
+          ),
+        ),
+      orderBy: (table, { asc }) => [asc(table.name)],
+      limit: 24,
+    });
+
+    const categoryMatches = await db.query.categories.findMany({
+      columns: {
+        name: true,
+      },
+      where: (table, { ilike }) => ilike(table.name, `%${normalizedQuery}%`),
       with: {
         products: {
           columns: {
             id: true,
             name: true,
+            slug: true,
           },
+          where: (table, { eq }) => eq(table.status, "active"),
+          orderBy: (table, { asc }) => [asc(table.name)],
         },
       },
-      where: (table, { ilike }) => ilike(table.name, `%${query}%`),
     });
 
+    type SearchResultProduct = {
+      id: string;
+      name: string;
+      slug: string;
+      group: string;
+      score: number;
+    };
+
+    const loweredQuery = normalizedQuery.toLowerCase();
+    const byProductId = new Map<string, SearchResultProduct>();
+
+    for (const product of directProductMatches) {
+      const loweredName = product.name.toLowerCase();
+      const loweredSlug = product.slug.toLowerCase();
+      const loweredDescription = product.description?.toLowerCase() ?? "";
+
+      const score = loweredName.startsWith(loweredQuery)
+        ? 0
+        : loweredName.includes(loweredQuery)
+          ? 1
+          : loweredSlug.includes(loweredQuery)
+            ? 2
+            : loweredDescription.includes(loweredQuery)
+              ? 3
+              : 4;
+
+      byProductId.set(product.id, {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        group: product.category?.name ?? "Products",
+        score,
+      });
+    }
+
+    for (const category of categoryMatches) {
+      for (const product of category.products) {
+        if (byProductId.has(product.id)) continue;
+        byProductId.set(product.id, {
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          group: category.name,
+          score: 5,
+        });
+      }
+    }
+
+    const rankedProducts = [...byProductId.values()].sort((a, b) => {
+      if (a.score !== b.score) {
+        return a.score - b.score;
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    const grouped = new Map<
+      string,
+      {
+        name: string;
+        products: Array<{ id: string; name: string; slug: string }>;
+      }
+    >();
+
+    for (const product of rankedProducts) {
+      if (!grouped.has(product.group)) {
+        grouped.set(product.group, {
+          name: product.group,
+          products: [],
+        });
+      }
+
+      grouped.get(product.group)?.products.push({
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+      });
+    }
+
     return {
-      data: categoriesWithProducts,
+      data: [...grouped.values()],
       error: null,
     };
   } catch (err) {

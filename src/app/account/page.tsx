@@ -1,22 +1,20 @@
-"use client";
-
-import { Loader2, Settings, ShoppingBag, UserCircle } from "lucide-react";
+import { eq, or } from "drizzle-orm";
+import { Settings, ShoppingBag, UserCircle } from "lucide-react";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { H2, P, Signature } from "@/components/ui/typography";
-import { authClient } from "@/lib/auth-client";
+import { db } from "@/db";
+import { customers } from "@/db/schema";
+import { auth } from "@/lib/auth";
 import { appendAuthCallback } from "@/lib/auth-redirect";
 
-export default function AccountDashboard() {
-  const { data: session, isPending } = authClient.useSession();
+export const dynamic = "force-dynamic";
 
-  if (isPending) {
-    return (
-      <div className="flex h-48 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+export default async function AccountDashboard() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session) {
     return (
@@ -31,6 +29,39 @@ export default function AccountDashboard() {
       </div>
     );
   }
+
+  const customerRecord = await db.query.customers.findFirst({
+    where: or(
+      eq(customers.userId, session.user.id),
+      eq(customers.email, session.user.email),
+    ),
+    with: {
+      orders: {
+        columns: {
+          id: true,
+          createdAt: true,
+          status: true,
+        },
+      },
+    },
+  });
+
+  const orderCount = customerRecord?.orders.length ?? 0;
+  const activeOrders =
+    customerRecord?.orders.filter((order) =>
+      ["pending", "paid", "processing", "ready_for_collection"].includes(
+        order.status,
+      ),
+    ).length ?? 0;
+  const latestOrder = customerRecord?.orders.reduce<Date | null>(
+    (latest, order) => {
+      if (!latest || order.createdAt > latest) {
+        return order.createdAt;
+      }
+      return latest;
+    },
+    null,
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -50,9 +81,11 @@ export default function AccountDashboard() {
               <ShoppingBag className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{orderCount}</div>
               <p className="text-xs text-muted-foreground">
-                Recent bakes and orders
+                {orderCount === 0
+                  ? "No orders yet"
+                  : `${activeOrders} active ${activeOrders === 1 ? "order" : "orders"}`}
               </p>
             </CardContent>
           </Card>
@@ -82,7 +115,9 @@ export default function AccountDashboard() {
               {session.user.role || "Customer"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Verified Account
+              {latestOrder
+                ? `Latest order ${latestOrder.toLocaleDateString("en-GB")}`
+                : "Start exploring to place your first order"}
             </p>
           </CardContent>
         </Card>

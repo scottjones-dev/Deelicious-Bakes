@@ -16,20 +16,9 @@ import { Button } from "@/components/ui/button";
 import { H1, Lead, P, Signature } from "@/components/ui/typography";
 import { db } from "@/db";
 import { products } from "@/db/schema";
-import { normalizeLobbyImageUrl } from "@/lib/image";
+import { getCategoryImage, getProductImage } from "@/lib/image";
 
 export const dynamic = "force-dynamic";
-
-const categoryFallbacks: Record<string, string> = {
-  cupcakes:
-    "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600",
-  "celebration-cakes":
-    "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600",
-  "brownies-traybakes":
-    "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&q=80&w=600",
-  macarons:
-    "https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&q=80&w=600",
-};
 
 export default async function HomePage() {
   const dbCategories = await db.query.categories.findMany({
@@ -151,10 +140,7 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {dbCategories.map((category) => {
-              const categoryImg =
-                normalizeLobbyImageUrl(category.image) ||
-                categoryFallbacks[category.slug] ||
-                "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=400";
+              const categoryImg = getCategoryImage(category);
               return (
                 <div
                   key={category.id}
@@ -229,16 +215,7 @@ export default async function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {dbProducts.map((product) => {
                 const primaryVariant = product.variants[0];
-                let productImg =
-                  "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=400";
-                if (product.category?.image) {
-                  productImg =
-                    normalizeLobbyImageUrl(product.category.image) ||
-                    productImg;
-                } else if (product.category?.slug) {
-                  productImg =
-                    categoryFallbacks[product.category.slug] || productImg;
-                }
+                const productImg = getProductImage(product);
 
                 return (
                   <div

@@ -12,19 +12,8 @@ import {
   getBundleCompositionText,
   getBundlePricingSummary,
 } from "@/lib/bundle-pricing";
-import { normalizeLobbyImageUrl } from "@/lib/image";
+import { getProductImage } from "@/lib/image";
 import { cn, formatPrice } from "@/lib/utils";
-
-const categoryFallbacks: Record<string, string> = {
-  cupcakes:
-    "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600",
-  "celebration-cakes":
-    "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600",
-  "brownies-traybakes":
-    "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&q=80&w=600",
-  macarons:
-    "https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&q=80&w=600",
-};
 
 interface ProductModalPageProps {
   params: {
@@ -41,11 +30,13 @@ export default async function ProductModalPage({
     where: (table, { eq }) => eq(table.id, productId),
     columns: {
       id: true,
+      slug: true,
       name: true,
       description: true,
       leadTimeDays: true,
       isCollectionOnly: true,
       productType: true,
+      images: true,
     },
     with: {
       category: {
@@ -110,9 +101,7 @@ export default async function ProductModalPage({
   const displayPrice =
     bundlePricing?.finalPrice ??
     (primaryVariant ? Number(primaryVariant.price) : null);
-  const productImage =
-    normalizeLobbyImageUrl(product.category?.image) ||
-    (product.category?.slug ? categoryFallbacks[product.category.slug] : null);
+  const productImage = getProductImage(product);
 
   return (
     <DialogShell className="flex flex-col gap-2 overflow-visible sm:flex-row">
@@ -127,7 +116,7 @@ export default async function ProductModalPage({
         )}
         asChild
       >
-        <Link href={`/product/${product.id}`} replace>
+        <Link href={`/store/products/${product.slug}`} replace>
           <Maximize2 className="size-4" aria-hidden="true" />
         </Link>
       </AlertDialogAction>

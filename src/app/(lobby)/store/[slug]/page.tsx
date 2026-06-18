@@ -11,30 +11,8 @@ import {
   getBundleCompositionText,
   getBundlePricingSummary,
 } from "@/lib/bundle-pricing";
-import { normalizeLobbyImageUrl } from "@/lib/image";
+import { getProductImage } from "@/lib/image";
 import { formatPrice } from "@/lib/utils";
-
-const categoryFallbacks: Record<string, string> = {
-  cupcakes:
-    "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600",
-  "celebration-cakes":
-    "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600",
-  "brownies-traybakes":
-    "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&q=80&w=600",
-  macarons:
-    "https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&q=80&w=600",
-};
-
-function getCategoryImage(
-  category: { image: string | null; slug: string } | null | undefined,
-) {
-  if (!category) return null;
-  return (
-    normalizeLobbyImageUrl(category.image) ||
-    categoryFallbacks[category.slug] ||
-    "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600"
-  );
-}
 
 export default async function StoreCategoryPage({
   params,
@@ -149,7 +127,7 @@ export default async function StoreCategoryPage({
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => {
             const primaryVariant = product.variants[0];
-            const imageUrl = getCategoryImage(product.category);
+            const imageUrl = getProductImage(product);
             const bundlePricing = getBundlePricingSummary(product.bundle);
             const bundleComposition = product.bundle
               ? getBundleCompositionText(product.bundle.items)
