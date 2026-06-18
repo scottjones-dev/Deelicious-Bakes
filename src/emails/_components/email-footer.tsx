@@ -7,8 +7,7 @@ interface EmailFooterProps {
 }
 
 export const EmailFooter = ({ unsubscribeUrl }: EmailFooterProps) => {
-  // Fallback link pointing to your user profile settings if a specific token link isn't provided
-  const fallbackUrl = `${env.NEXT_PUBLIC_APP_URL}/settings/billing`;
+  const fallbackUrl = `${env.NEXT_PUBLIC_APP_URL}/account/settings`;
 
   const targetUrl = unsubscribeUrl || fallbackUrl;
 

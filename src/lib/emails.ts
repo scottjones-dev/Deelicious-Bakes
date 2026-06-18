@@ -9,6 +9,7 @@ import ResetPassword from "@/emails/reset-password";
 import VerifyEmail from "@/emails/verify-email";
 import WelcomeEmail from "@/emails/welcome";
 import { resend } from "./resend";
+import { buildEmailUnsubscribeUrl } from "./unsubscribe-token";
 
 const FROM_ADDRESS =
   env.EMAIL_FROM_ADDRESS || "Deelicious Bakes <hello@deeliciousbakes.co.uk>";
@@ -67,7 +68,10 @@ export async function sendWelcomeEmail({
 }: SendWelcomeOptions) {
   try {
     const html = await render(
-      React.createElement(WelcomeEmail, { customerName }),
+      React.createElement(WelcomeEmail, {
+        customerName,
+        unsubscribeUrl: buildEmailUnsubscribeUrl(to),
+      }),
     );
 
     const { data, error } = await resend.emails.send({
@@ -95,7 +99,11 @@ export async function sendVerificationEmail({
 }: SendVerificationOptions) {
   try {
     const html = await render(
-      React.createElement(VerifyEmail, { customerName, verificationUrl }),
+      React.createElement(VerifyEmail, {
+        customerName,
+        verificationUrl,
+        unsubscribeUrl: buildEmailUnsubscribeUrl(to),
+      }),
     );
 
     const { data, error } = await resend.emails.send({
@@ -123,7 +131,11 @@ export async function sendForgotPasswordEmail({
 }: SendResetOptions) {
   try {
     const html = await render(
-      React.createElement(ResetPassword, { customerName, resetUrl }),
+      React.createElement(ResetPassword, {
+        customerName,
+        resetUrl,
+        unsubscribeUrl: buildEmailUnsubscribeUrl(to),
+      }),
     );
 
     const { data, error } = await resend.emails.send({
@@ -150,7 +162,10 @@ export async function sendPasswordChangedEmail({
 }: SendPasswordChangedOptions) {
   try {
     const html = await render(
-      React.createElement(PasswordChanged, { customerName }),
+      React.createElement(PasswordChanged, {
+        customerName,
+        unsubscribeUrl: buildEmailUnsubscribeUrl(to),
+      }),
     );
 
     const { data, error } = await resend.emails.send({
@@ -185,6 +200,7 @@ export async function sendOrderPlacedEmail({
         orderNumber,
         totalAmount,
         orderUrl,
+        unsubscribeUrl: buildEmailUnsubscribeUrl(to),
       }),
     );
 
@@ -222,6 +238,7 @@ export async function sendOrderUpdateEmail({
         updateStatus,
         message,
         orderUrl,
+        unsubscribeUrl: buildEmailUnsubscribeUrl(to),
       }),
     );
 
@@ -250,7 +267,11 @@ export async function sendContactUsEmail({
 }: SendContactUsOptions) {
   try {
     const html = await render(
-      React.createElement(ContactUs, { customerName, message }),
+      React.createElement(ContactUs, {
+        customerName,
+        message,
+        unsubscribeUrl: buildEmailUnsubscribeUrl(to),
+      }),
     );
 
     const { data, error } = await resend.emails.send({

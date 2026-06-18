@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { H3, P } from "@/components/ui/typography";
 import { authClient } from "@/lib/auth-client";
+import { appendAuthCallback, getAuthCallbackPath } from "@/lib/auth-redirect";
 
 export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
@@ -26,17 +27,8 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [emailSentTo, setEmailSentTo] = useState("");
-  const callbackUrl = (() => {
-    const raw =
-      searchParams.get("callbackUrl") ??
-      searchParams.get("callbackURL") ??
-      "/account";
-    return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/account";
-  })();
-  const signInHref =
-    callbackUrl === "/account"
-      ? "/sign-in"
-      : `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+  const callbackUrl = getAuthCallbackPath(searchParams);
+  const signInHref = appendAuthCallback("/sign-in", callbackUrl);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -55,14 +47,17 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
       return;
     }
 
-    const result = await authClient.signUp.email({
+    const signUpPayload: Parameters<typeof authClient.signUp.email>[0] & {
+      marketingConsent: boolean;
+    } = {
       email,
       password,
       name,
-      // @ts-expect-error additional Better Auth field configured server-side
       marketingConsent,
       callbackURL: callbackUrl,
-    });
+    };
+
+    const result = await authClient.signUp.email(signUpPayload);
 
     setIsPending(false);
 

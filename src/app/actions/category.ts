@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { categories, products } from "@/db/schema";
+import { assertAdminSession } from "@/lib/admin-auth";
 
 export async function createCategory(data: {
   name: string;
@@ -12,6 +13,8 @@ export async function createCategory(data: {
   image?: string;
 }) {
   try {
+    await assertAdminSession();
+
     const [category] = await db
       .insert(categories)
       .values({
@@ -43,6 +46,8 @@ export async function updateCategory(
   },
 ) {
   try {
+    await assertAdminSession();
+
     const [category] = await db
       .update(categories)
       .set({
@@ -68,6 +73,8 @@ export async function updateCategory(
 
 export async function deleteCategory(id: string) {
   try {
+    await assertAdminSession();
+
     // Determine if any products are currently linked to this category
     const linkedProducts = await db
       .select()

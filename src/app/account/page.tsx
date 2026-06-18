@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { H2, P, Signature } from "@/components/ui/typography";
 import { authClient } from "@/lib/auth-client";
+import { appendAuthCallback } from "@/lib/auth-redirect";
 
 export default function AccountDashboard() {
   const { data: session, isPending } = authClient.useSession();
@@ -21,7 +22,10 @@ export default function AccountDashboard() {
     return (
       <div className="flex flex-col items-center gap-4 text-center">
         <P>Please sign in to view your account.</P>
-        <Link href="/sign-in" className="text-primary hover:underline">
+        <Link
+          href={appendAuthCallback("/sign-in", "/account")}
+          className="text-primary hover:underline"
+        >
           Sign In
         </Link>
       </div>

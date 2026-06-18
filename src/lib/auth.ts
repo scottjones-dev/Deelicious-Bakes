@@ -82,12 +82,14 @@ export const auth = betterAuth({
     async afterEmailVerification(user, _request) {
       console.log(`📡 Triggering background sync for ${user.email}`);
 
+      const marketingConsent =
+        "marketingConsent" in user && user.marketingConsent === true;
+
       await tasks.trigger("sync-user-on-verification", {
         userId: user.id,
         email: user.email,
         name: user.name,
-        // @ts-expect-error - marketingConsent is an additionalField
-        marketingConsent: user.marketingConsent === true,
+        marketingConsent,
       });
     },
   },

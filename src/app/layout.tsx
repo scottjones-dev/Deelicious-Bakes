@@ -7,11 +7,13 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { Toaster } from "sonner";
 import { extractRouterConfig } from "uploadthing/server";
+import { CartProvider } from "@/components/cart/cart-provider";
 import { TailwindIndicator } from "@/components/ui/tailwind-indicator";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { env } from "@/config/env";
 import { siteConfig } from "@/config/site";
+import { getCartSummary } from "@/lib/cart";
 import { cn } from "@/lib/utils";
 import { ourFileRouter } from "./api/uploadthing/core";
 import { brittanySignature } from "./fonts";
@@ -62,14 +64,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialCartSummary = await getCartSummary();
+
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={cn(
         "h-full",
         brittanySignature.variable,
@@ -95,12 +100,16 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider>
-            <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
-            {children}
-            <Toaster closeButton expand position="bottom-right" richColors />
-            <Analytics />
-            <SpeedInsights />
-            <TailwindIndicator />
+            <CartProvider initialSummary={initialCartSummary}>
+              <NextSSRPlugin
+                routerConfig={extractRouterConfig(ourFileRouter)}
+              />
+              {children}
+              <Toaster closeButton expand position="bottom-right" richColors />
+              <Analytics />
+              <SpeedInsights />
+              <TailwindIndicator />
+            </CartProvider>
           </TooltipProvider>
         </ThemeProvider>
       </body>

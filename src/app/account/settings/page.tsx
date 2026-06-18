@@ -1,8 +1,10 @@
 "use client";
 
 import { Loader2, Save } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,12 +17,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { H2, P } from "@/components/ui/typography";
-import { UserAvatarUploader } from "@/components/uploadthing/avatar-uploader";
 import { authClient } from "@/lib/auth-client";
+import { appendAuthCallback } from "@/lib/auth-redirect";
 
 export default function SettingsPage() {
   const { data: session, isPending: sessionPending } = authClient.useSession();
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const marketingConsentEnabled =
+    "marketingConsent" in (session?.user ?? {}) &&
+    session?.user.marketingConsent === true;
+
+  useEffect(() => {
+    if (!session) return;
+    setMarketingConsent(marketingConsentEnabled);
+  }, [marketingConsentEnabled, session]);
 
   if (sessionPending) {
     return (
@@ -30,30 +42,59 @@ export default function SettingsPage() {
     );
   }
 
-  if (!session) return null;
+  if (!session) {
+    return (
+      <div className="flex flex-col items-center gap-4 text-center">
+        <P>Please sign in to update your account settings.</P>
+        <Link
+          href={appendAuthCallback("/sign-in", "/account/settings")}
+          className="text-primary hover:underline"
+        >
+          Sign In
+        </Link>
+      </div>
+    );
+  }
 
-  async function handleUpdateProfile(e: React.FormEvent<HTMLFormElement>) {
+  const hasConsentChanged = marketingConsent !== marketingConsentEnabled;
+
+  async function handleSavePreferences(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setIsUpdating(true);
+    if (!hasConsentChanged) return;
 
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get("name") as string;
-    const marketingConsent = formData.get("marketing-consent") === "on";
+    setIsSaving(true);
 
-    const { error } = await authClient.updateUser({
-      name,
-      // @ts-expect-error - marketingConsent is an additionalField
-      marketingConsent,
-    });
+    try {
+      const response = await fetch("/api/emails/preferences", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: session.user.name,
+          subscribe: marketingConsent,
+        }),
+      });
 
-    setIsUpdating(false);
+      const data = (await response.json()) as {
+        error?: string;
+        message?: string;
+        subscribed?: boolean;
+      };
 
-    if (error) {
-      toast.error(error.message || "Failed to update profile");
-      return;
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to save preferences.");
+      }
+
+      setMarketingConsent(Boolean(data.subscribed));
+      toast.success(data.message || "Preferences saved.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to save preferences.";
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
     }
-
-    toast.success("Profile updated successfully! 🥐");
   }
 
   return (
@@ -76,27 +117,29 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col sm:flex-row items-center gap-6 pb-4">
-              <UserAvatarUploader
-                currentImage={session.user.image}
-                fallbackName={session.user.name}
-              />
+              <Avatar className="h-24 w-24 border-2 border-border">
+                <AvatarImage src={session.user.image ?? undefined} />
+                <AvatarFallback className="text-xl font-bold uppercase text-muted-foreground">
+                  {session.user.name.slice(0, 2)}
+                </AvatarFallback>
+              </Avatar>
               <div className="text-center sm:text-left space-y-1">
                 <p className="text-sm font-medium">Profile Photo</p>
                 <p className="text-xs text-muted-foreground">
-                  Click the circle to upload a new photo.
+                  Profile photo updates are disabled for account security.
                 </p>
               </div>
             </div>
 
-            <form onSubmit={handleUpdateProfile} className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSavePreferences}>
               <div className="grid gap-2">
                 <Label htmlFor="name">Display Name</Label>
                 <Input
                   id="name"
                   name="name"
-                  defaultValue={session.user.name}
-                  required
-                  className="bg-background/50 border-primary/10"
+                  value={session.user.name}
+                  disabled
+                  className="bg-muted/50 border-primary/5 cursor-not-allowed"
                 />
               </div>
 
@@ -110,7 +153,7 @@ export default function SettingsPage() {
                   className="bg-muted/50 border-primary/5 cursor-not-allowed"
                 />
                 <p className="text-[10px] text-muted-foreground italic">
-                  Email changes are coming soon.
+                  Email and profile details are managed by administrators only.
                 </p>
               </div>
 
@@ -131,53 +174,24 @@ export default function SettingsPage() {
                   <Switch
                     id="marketing-consent"
                     name="marketing-consent"
-                    defaultChecked={(session.user as any).marketingConsent}
+                    checked={marketingConsent}
+                    onCheckedChange={setMarketingConsent}
+                    disabled={isSaving}
                   />
                 </div>
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button
-                  type="submit"
-                  disabled={isUpdating}
-                  className="bg-primary text-primary-foreground"
-                >
-                  {isUpdating ? (
+                <Button type="submit" disabled={isSaving || !hasConsentChanged}>
+                  {isSaving ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Save className="mr-2 h-4 w-4" />
                   )}
-                  Save Changes
+                  Save preferences
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
-        {/* TODO Remove this as customers wont see stripe this is admin only needs moved to admin */}
-        {/* Security / Subscription Status */}
-        <Card className="border-primary/10 shadow-sm bg-card/50 border-l-4 border-l-accent">
-          <CardHeader>
-            <CardTitle className="font-heading">
-              Billing & Subscriptions
-            </CardTitle>
-            <CardDescription>
-              Manage your payments and Stripe customer portal.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-4">
-              <P className="text-sm">
-                Access your Stripe portal to view receipts, manage payment
-                methods, and see your subscription history.
-              </P>
-              <Button
-                variant="outline"
-                className="w-fit border-accent text-accent hover:bg-accent/10"
-                disabled
-              >
-                Open Stripe Portal (Coming Soon)
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>

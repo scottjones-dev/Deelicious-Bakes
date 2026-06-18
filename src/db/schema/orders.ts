@@ -10,6 +10,7 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
+import type { OrderItemCustomizations } from "@/lib/validations/cart";
 
 import { generateId } from "@/utils/id";
 
@@ -98,6 +99,9 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
 
 export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
+export type OrderStatus = (typeof orderStatusEnum.enumValues)[number];
+export type OrderFulfillmentMethod =
+  (typeof orderFulfillmentMethodEnum.enumValues)[number];
 
 // immutable line-item snapshot — decoupled from live product/variant data
 // so historical orders never change if a product is later edited, repriced, or deleted
@@ -124,7 +128,7 @@ export const orderItems = pgTable(
     quantity: integer("quantity").notNull().default(1),
     lineTotal: decimal("line_total", { precision: 10, scale: 2 }).notNull(),
     customizations: json("customizations")
-      .$type<Record<string, any> | null>()
+      .$type<OrderItemCustomizations | null>()
       .default(null),
     createdAt: lifecycleDates.createdAt,
   },

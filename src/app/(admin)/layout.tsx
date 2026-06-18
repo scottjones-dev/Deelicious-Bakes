@@ -1,5 +1,3 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -7,20 +5,14 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { auth } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session || session.user.role !== "admin") {
-    redirect("/");
-  }
+  const session = await requireAdminSession();
 
   return (
     <SidebarProvider>
@@ -30,13 +22,14 @@ export default async function AdminLayout({
             name: session.user.name,
             email: session.user.email,
             image: session.user.image,
+            role: session.user.role ?? "user",
           }}
         />
-        <SidebarInset className="flex flex-col flex-1">
+        <SidebarInset className="flex flex-col flex-1 ">
           {/* Top Bar Shell */}
           <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-card px-4 md:px-6">
             <SidebarTrigger className="-ml-1 cursor-pointer" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Separator orientation="vertical" className="mr-2" />
             <div className="flex-1">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Operations Board

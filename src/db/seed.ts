@@ -3,8 +3,10 @@ import { eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import {
   addresses,
+  auditLogs,
   categories,
   customers,
+  ingredients,
   orderItems,
   orders,
   products,
@@ -13,6 +15,10 @@ import {
   user as userTable,
 } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import {
+  type BundleCompositionSchema,
+  toOrderItemCustomizations,
+} from "@/lib/validations/cart";
 import { generateId } from "@/utils/id";
 
 async function main() {
@@ -30,6 +36,8 @@ async function main() {
     await db.delete(stocks);
     await db.delete(productVariants);
     await db.delete(products);
+    await db.delete(auditLogs);
+    await db.delete(ingredients);
     await db.delete(categories);
     await db.delete(customers);
 
@@ -88,9 +96,151 @@ async function main() {
     console.log(`✅ Seeded ${seededCategories.length} categories.`);
 
     // =========================================================================
+    // 2.5 SEED INGREDIENTS
+    // =========================================================================
+    console.log("🧾 Seeding ingredient costing catalog...");
+
+    const seededIngredients = await db
+      .insert(ingredients)
+      .values([
+        {
+          id: "ing_plain_flour",
+          name: "Plain Flour",
+          slug: "plain-flour",
+          baseUnit: "g",
+          purchaseUnit: "kg",
+          purchaseQuantity: "16.000",
+          purchasePrice: "18.40",
+          costPerBaseUnit: "0.00115000",
+          supplier: "Booker Wholesale",
+        },
+        {
+          id: "ing_caster_sugar",
+          name: "Caster Sugar",
+          slug: "caster-sugar",
+          baseUnit: "g",
+          purchaseUnit: "kg",
+          purchaseQuantity: "25.000",
+          purchasePrice: "22.50",
+          costPerBaseUnit: "0.00090000",
+          supplier: "Makro",
+        },
+        {
+          id: "ing_unsalted_butter",
+          name: "Unsalted Butter",
+          slug: "unsalted-butter",
+          baseUnit: "g",
+          purchaseUnit: "kg",
+          purchaseQuantity: "5.000",
+          purchasePrice: "39.95",
+          costPerBaseUnit: "0.00799000",
+          supplier: "Brakes",
+        },
+        {
+          id: "ing_double_cream",
+          name: "Double Cream",
+          slug: "double-cream",
+          baseUnit: "ml",
+          purchaseUnit: "l",
+          purchaseQuantity: "12.000",
+          purchasePrice: "34.20",
+          costPerBaseUnit: "0.00285000",
+          supplier: "Booker Wholesale",
+        },
+        {
+          id: "ing_dark_chocolate",
+          name: "Dark Chocolate 70%",
+          slug: "dark-chocolate-70",
+          baseUnit: "g",
+          purchaseUnit: "kg",
+          purchaseQuantity: "10.000",
+          purchasePrice: "78.00",
+          costPerBaseUnit: "0.00780000",
+          supplier: "Callebaut UK",
+        },
+        {
+          id: "ing_milk_chocolate",
+          name: "Milk Chocolate",
+          slug: "milk-chocolate",
+          baseUnit: "g",
+          purchaseUnit: "kg",
+          purchaseQuantity: "10.000",
+          purchasePrice: "71.00",
+          costPerBaseUnit: "0.00710000",
+          supplier: "Callebaut UK",
+        },
+        {
+          id: "ing_eggs",
+          name: "Eggs",
+          slug: "eggs",
+          baseUnit: "g",
+          purchaseUnit: "kg",
+          purchaseQuantity: "12.000",
+          purchasePrice: "27.60",
+          costPerBaseUnit: "0.00230000",
+          supplier: "Salisbury Farm Produce",
+        },
+        {
+          id: "ing_vanilla_extract",
+          name: "Vanilla Extract",
+          slug: "vanilla-extract",
+          baseUnit: "ml",
+          purchaseUnit: "l",
+          purchaseQuantity: "1.000",
+          purchasePrice: "22.00",
+          costPerBaseUnit: "0.02200000",
+          supplier: "Sous Chef",
+        },
+        {
+          id: "ing_biscoff_spread",
+          name: "Biscoff Spread",
+          slug: "biscoff-spread",
+          baseUnit: "g",
+          purchaseUnit: "kg",
+          purchaseQuantity: "6.000",
+          purchasePrice: "31.20",
+          costPerBaseUnit: "0.00520000",
+          supplier: "Lotus Biscoff Trade",
+        },
+        {
+          id: "ing_almond_flour",
+          name: "Almond Flour",
+          slug: "almond-flour",
+          baseUnit: "g",
+          purchaseUnit: "kg",
+          purchaseQuantity: "5.000",
+          purchasePrice: "44.50",
+          costPerBaseUnit: "0.00890000",
+          supplier: "Wholefood Wholesale",
+        },
+      ])
+      .returning();
+
+    console.log(`✅ Seeded ${seededIngredients.length} ingredients.`);
+
+    // =========================================================================
     // 3. SEED PRODUCTS & VARIANTS & STOCKS
     // =========================================================================
     console.log("🍰 Seeding gourmet products and price variants...");
+    const standardDeliveryOptions = [
+      "Weekdays - All Day",
+      "Orders under £50 — £5.95",
+      "Orders over £50 — FREE",
+      "",
+      "Weekdays - Mornings",
+      "All orders — £8.95",
+      "",
+      "Weekends - All Day",
+      "Orders under £50 — £6.99",
+      "Orders over £50 — FREE",
+      "",
+      "Weekends - Mornings",
+      "All orders — £25",
+      "",
+      "Every Day - Multiple Time Slots",
+      "Orders within local radius. Delivered by courier on guaranteed day of your choice.",
+      "£10.99 - £17.99",
+    ].join("\n");
 
     // Helper to generate a product + its variants and stocks
     const createProductWithVariants = async (
@@ -129,6 +279,17 @@ async function main() {
         slug: "vanilla-bean-classic",
         description:
           "Fluffy Madagascar vanilla sponge topped with our signature whipped vanilla buttercream, pearls, and edible glitter.",
+        sku: "PROD-VANILLA-CLASSIC",
+        dietaryInfo:
+          "Contains: Wheat (Gluten), Milk, Eggs, Soya. Made in a kitchen that handles Nuts.",
+        ingredientsInfo:
+          "Vanilla sponge (wheat flour, eggs, sugar, butter, milk), vanilla buttercream, edible pearls.",
+        sizesAndServes: "Box of 6 serves 6-8.\nBox of 12 serves 12-16.",
+        shelfLifeStorage:
+          "Best enjoyed within 3 days. Store in a cool, dry place away from direct sunlight.",
+        arrivalInfo:
+          "Arrives in a protective bakery box with support inserts to keep decorations secure.",
+        deliveryOptions: standardDeliveryOptions,
         categoryId: "cat_cupcakes",
         status: "active",
         leadTimeDays: 1,
@@ -161,6 +322,17 @@ async function main() {
         slug: "double-chocolate-fudge",
         description:
           "Rich Belgian chocolate sponge filled with molten fudge sauce, topped with silky dark chocolate buttercream and cocoa dust.",
+        sku: "PROD-DOUBLE-CHOC",
+        dietaryInfo:
+          "Contains: Wheat (Gluten), Milk, Eggs, Soya. Made in a kitchen that handles Nuts.",
+        ingredientsInfo:
+          "Chocolate sponge (wheat flour, cocoa, eggs, sugar, butter), fudge filling, chocolate buttercream.",
+        sizesAndServes: "Box of 6 serves 6-8.\nBox of 12 serves 12-16.",
+        shelfLifeStorage:
+          "Best enjoyed within 3 days. Store in a cool, dry place.",
+        arrivalInfo:
+          "Packed in a secure cupcake transit box to maintain shape and finish.",
+        deliveryOptions: standardDeliveryOptions,
         categoryId: "cat_cupcakes",
         status: "active",
         leadTimeDays: 1,
@@ -193,6 +365,16 @@ async function main() {
         slug: "salted-caramel-pretzel",
         description:
           "Brown sugar sponge with a gooey salted caramel core, frosted with caramel buttercream and finished with a crunchy pretzel.",
+        sku: "PROD-SALTED-CARAMEL-PRETZEL",
+        dietaryInfo:
+          "Contains: Wheat (Gluten), Milk, Eggs. May contain traces of Nuts and Soya.",
+        ingredientsInfo:
+          "Brown sugar sponge, salted caramel filling, caramel buttercream, pretzel topping.",
+        sizesAndServes: "Box of 6 serves 6-8.\nBox of 12 serves 12-16.",
+        shelfLifeStorage: "Best enjoyed within 2-3 days. Keep cool and dry.",
+        arrivalInfo:
+          "Delivered in reinforced packaging to protect caramel and pretzel decoration.",
+        deliveryOptions: standardDeliveryOptions,
         categoryId: "cat_cupcakes",
         status: "active",
         leadTimeDays: 2,
@@ -223,6 +405,19 @@ async function main() {
       slug: "bespoke-wedding-cake",
       description:
         "A gorgeous, fully customized multi-tier cake. Price varies based on consultation, sizing, and design requirements.",
+      sku: "PROD-BESPOKE-WEDDING",
+      dietaryInfo:
+        "Allergen profile depends on final design and flavours. Confirmed in writing after consultation.",
+      ingredientsInfo:
+        "Made-to-order with premium sponge, fillings, and buttercream selected during consultation.",
+      sizesAndServes:
+        "Tiering and servings are bespoke and confirmed during consultation.",
+      shelfLifeStorage:
+        "Storage instructions are provided per design and finish at collection.",
+      arrivalInfo:
+        "Collection only. Tiered components are boxed securely with handling guidance.",
+      deliveryOptions:
+        "Collection only from our Salisbury bakery by appointment.\nNo courier delivery available for this item.",
       categoryId: "cat_celebration",
       status: "active",
       leadTimeDays: 14, // 2 weeks lead time for celebration cakes!
@@ -254,6 +449,17 @@ async function main() {
         slug: "salisbury-victoria-sponge",
         description:
           "Traditional English Victoria sponge layered with locally-sourced Salisbury strawberries, raspberry preserve, and fresh vanilla bean cream.",
+        sku: "PROD-VICTORIA-SPONGE",
+        dietaryInfo:
+          "Contains: Wheat (Gluten), Milk, Eggs. Made in a kitchen that handles Nuts.",
+        ingredientsInfo:
+          "Vanilla sponge, strawberry preserve, fresh cream, seasonal strawberries.",
+        sizesAndServes: "6 inch serves 8.\n8 inch serves 14.",
+        shelfLifeStorage:
+          "Consume within 2 days due to fresh cream. Keep refrigerated and bring to room temperature before serving.",
+        arrivalInfo:
+          "Shipped chilled with insulated packaging to preserve freshness.",
+        deliveryOptions: standardDeliveryOptions,
         categoryId: "cat_celebration",
         status: "active",
         leadTimeDays: 3,
@@ -286,6 +492,17 @@ async function main() {
         slug: "triple-chocolate-brownies",
         description:
           "Decadent, rich Belgian chocolate brownies studded with white, milk, and dark chocolate chunks. Crisp top with a molten center.",
+        sku: "PROD-TRIPLE-BROWNIES",
+        dietaryInfo:
+          "Contains: Wheat (Gluten), Milk, Eggs, Soya. May contain Nuts.",
+        ingredientsInfo:
+          "Belgian chocolate brownie batter, mixed chocolate chunks, cocoa.",
+        sizesAndServes: "Box of 6 serves 6.\nBox of 12 serves 12.",
+        shelfLifeStorage:
+          "Best within 5 days. Store airtight at room temperature.",
+        arrivalInfo:
+          "Brownies are wrapped and boxed to keep texture fudgy during transit.",
+        deliveryOptions: standardDeliveryOptions,
         categoryId: "cat_brownies",
         status: "active",
         leadTimeDays: 1,
@@ -318,6 +535,16 @@ async function main() {
         slug: "biscoff-rocky-road",
         description:
           "Gooey marshmallows, crunchy Biscoff cookies, white chocolate swirls, and cookie butter spread.",
+        sku: "PROD-BISCOFF-ROCKY-ROAD",
+        dietaryInfo: "Contains: Wheat (Gluten), Milk, Soya. May contain Nuts.",
+        ingredientsInfo:
+          "Cookie crumb base, marshmallows, Biscoff spread, white chocolate drizzle.",
+        sizesAndServes: "Box of 6 serves 6.",
+        shelfLifeStorage:
+          "Best within 5 days. Store in an airtight container in a cool place.",
+        arrivalInfo:
+          "Packed in individual liners within a rigid bakery box to avoid sticking.",
+        deliveryOptions: standardDeliveryOptions,
         categoryId: "cat_brownies",
         status: "active",
         leadTimeDays: 1,
@@ -343,6 +570,16 @@ async function main() {
         slug: "french-macarons-assorted",
         description:
           "Delicate Parisian macaron shells containing raspberry white chocolate, pistachio buttercream, and espresso caramel fillings.",
+        sku: "PROD-MACARONS-ASSORTED",
+        dietaryInfo:
+          "Contains: Nuts (Almond, Pistachio), Milk, Eggs. Gluten-free recipe.",
+        ingredientsInfo:
+          "Almond meringue shells with assorted ganache and buttercream fillings.",
+        sizesAndServes: "Box of 12 serves 6-12.\nBox of 24 serves 12-24.",
+        shelfLifeStorage: "Refrigerate on arrival and consume within 4 days.",
+        arrivalInfo:
+          "Packed in compartmented trays to protect shells and filling structure.",
+        deliveryOptions: standardDeliveryOptions,
         categoryId: "cat_macarons",
         status: "active",
         leadTimeDays: 2,
@@ -487,6 +724,8 @@ async function main() {
       unitPrice: string;
       quantity: number;
       lineTotal: string;
+      customizations?: Record<string, unknown> | null;
+      bundleComposition?: BundleCompositionSchema | null;
     }
 
     interface SeedOrder {
@@ -800,6 +1039,10 @@ async function main() {
           unitPrice: item.unitPrice,
           quantity: item.quantity,
           lineTotal: item.lineTotal,
+          customizations: toOrderItemCustomizations({
+            customizations: item.customizations ?? null,
+            bundleComposition: item.bundleComposition ?? null,
+          }),
         });
       }
     }

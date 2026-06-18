@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { customers, reviews } from "@/db/schema";
+import { assertAdminSession } from "@/lib/admin-auth";
 
 export async function submitReviewAction(
   productId: string,
@@ -68,6 +69,8 @@ export async function updateReviewStatusAction(
   status: "pending" | "approved" | "rejected",
 ) {
   try {
+    await assertAdminSession();
+
     const [review] = await db
       .update(reviews)
       .set({ status, updatedAt: new Date() })
@@ -81,6 +84,39 @@ export async function updateReviewStatusAction(
     return {
       success: false,
       error: error.message || "Failed to update review status.",
+    };
+  }
+}
+
+export async function replyToReviewAction(reviewId: string, reply: string) {
+  try {
+    await assertAdminSession();
+
+    const trimmedReply = reply.trim();
+    if (!trimmedReply) {
+      return {
+        success: false,
+        error: "Reply cannot be empty.",
+      };
+    }
+
+    const [review] = await db
+      .update(reviews)
+      .set({
+        adminReply: trimmedReply,
+        adminRepliedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(reviews.id, reviewId))
+      .returning();
+
+    revalidatePath("/admin/reviews");
+    return { success: true, review };
+  } catch (error: any) {
+    console.error("Reply to review error:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to save review reply.",
     };
   }
 }
