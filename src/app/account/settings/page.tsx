@@ -20,14 +20,18 @@ import { H2, P } from "@/components/ui/typography";
 import { authClient } from "@/lib/auth-client";
 import { appendAuthCallback } from "@/lib/auth-redirect";
 
+function getMarketingConsent(user: unknown): boolean {
+  if (!user || typeof user !== "object") return false;
+  const maybeUser = user as Record<string, unknown>;
+  return maybeUser.marketingConsent === true;
+}
+
 export default function SettingsPage() {
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const marketingConsentEnabled =
-    "marketingConsent" in (session?.user ?? {}) &&
-    session?.user.marketingConsent === true;
+  const marketingConsentEnabled = getMarketingConsent(session?.user);
 
   useEffect(() => {
     if (!session) return;
@@ -56,6 +60,20 @@ export default function SettingsPage() {
     );
   }
 
+  const sessionUser = session?.user;
+  if (!sessionUser) {
+    return (
+      <div className="flex flex-col items-center gap-4 text-center">
+        <P>Please sign in to update your account settings.</P>
+        <Link
+          href={appendAuthCallback("/sign-in", "/account/settings")}
+          className="text-primary hover:underline"
+        >
+          Sign In
+        </Link>
+      </div>
+    );
+  }
   const hasConsentChanged = marketingConsent !== marketingConsentEnabled;
 
   async function handleSavePreferences(e: React.FormEvent<HTMLFormElement>) {
@@ -71,7 +89,7 @@ export default function SettingsPage() {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          name: session.user.name,
+          name: sessionUser.name,
           subscribe: marketingConsent,
         }),
       });
@@ -118,9 +136,9 @@ export default function SettingsPage() {
           <CardContent className="space-y-6">
             <div className="flex flex-col sm:flex-row items-center gap-6 pb-4">
               <Avatar className="h-24 w-24 border-2 border-border">
-                <AvatarImage src={session.user.image ?? undefined} />
+                <AvatarImage src={sessionUser.image ?? undefined} />
                 <AvatarFallback className="text-xl font-bold uppercase text-muted-foreground">
-                  {session.user.name.slice(0, 2)}
+                  {sessionUser.name.slice(0, 2)}
                 </AvatarFallback>
               </Avatar>
               <div className="text-center sm:text-left space-y-1">
@@ -137,7 +155,7 @@ export default function SettingsPage() {
                 <Input
                   id="name"
                   name="name"
-                  value={session.user.name}
+                  value={sessionUser.name}
                   disabled
                   className="bg-muted/50 border-primary/5 cursor-not-allowed"
                 />
@@ -148,7 +166,7 @@ export default function SettingsPage() {
                 <Input
                   id="email"
                   type="email"
-                  value={session.user.email}
+                  value={sessionUser.email}
                   disabled
                   className="bg-muted/50 border-primary/5 cursor-not-allowed"
                 />
