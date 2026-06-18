@@ -38,7 +38,10 @@ export default async function OrderDetailPage({
   }
 
   const customerRecord = await db.query.customers.findFirst({
-    where: eq(customers.userId, session.user.id),
+    where: or(
+      eq(customers.userId, session.user.id),
+      eq(customers.email, session.user.email),
+    ),
   });
 
   if (!customerRecord) {
