@@ -25,7 +25,8 @@ export async function proxy(request: NextRequest) {
   if (!session && protectedRoutes.some((route) => pathname.startsWith(route))) {
     url.pathname = "/sign-in";
     // Pass the target path along so they return directly after completing login
-    url.searchParams.set("callbackUrl", request.url);
+    const callbackPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+    url.searchParams.set("callbackUrl", callbackPath);
     return NextResponse.redirect(url);
   }
 
