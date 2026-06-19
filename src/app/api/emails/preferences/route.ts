@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { subscribe } = body;
+    const { name, subscribe } = body;
 
     if (typeof subscribe !== "boolean") {
       return NextResponse.json(
@@ -37,7 +37,10 @@ export async function POST(request: Request) {
     await syncMarketingConsent({
       email: session.user.email,
       userId: session.user.id,
-      name: session.user.name,
+      name:
+        typeof name === "string" && name.trim().length > 0
+          ? name
+          : session.user.name,
       marketingConsent: subscribe,
     });
 

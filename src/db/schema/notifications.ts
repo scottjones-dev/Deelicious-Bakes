@@ -22,6 +22,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "payment_receipt",
   "refund_confirmation",
   "marketing",
+  "admin_alert",
 ]);
 
 export const notificationChannelEnum = pgEnum("notification_channel", [

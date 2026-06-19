@@ -23,6 +23,7 @@ const envSchema = z.object({
         .default("mock-secret-key-for-compilation-verification-only"),
   BETTER_AUTH_URL: z.url().default("http://localhost:3000"),
   ADMIN_EMAIL: z.email().optional(),
+  ADMIN_ALERT_EMAILS: z.string().optional(),
 
   RESEND_API_KEY: z.string().optional(),
   RESEND_AUDIENCE_ID: z.string().optional(),

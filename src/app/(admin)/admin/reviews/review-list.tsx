@@ -4,15 +4,19 @@ import {
   Check,
   Loader2,
   MessageSquare,
+  Send,
   ShoppingBag,
   ShoppingCart,
   Star,
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { updateReviewStatusAction } from "@/app/actions/reviews";
+import {
+  replyToReviewAction,
+  updateReviewStatusAction,
+} from "@/app/actions/reviews";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +38,8 @@ interface ReviewItem {
   customerName: string;
   customerEmail: string;
   status: "pending" | "approved" | "rejected";
+  adminReply: string | null;
+  adminRepliedAt: Date | null;
   createdAt: Date;
   product?: {
     name: string;
@@ -50,6 +56,7 @@ interface ReviewListProps {
 export function ReviewList({ initialReviews }: ReviewListProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   const handleStatusUpdate = (
     id: string,
@@ -64,6 +71,25 @@ export function ReviewList({ initialReviews }: ReviewListProps) {
         router.refresh();
       } else {
         toast.error(res.error || `Failed to ${status} review.`);
+      }
+    });
+  };
+
+  const handleReplySubmit = (reviewId: string, customerName: string) => {
+    const message = (replyDrafts[reviewId] ?? "").trim();
+    if (!message) {
+      toast.error("Please write a reply before sending.");
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await replyToReviewAction(reviewId, message);
+      if (res.success) {
+        toast.success(`Reply sent to "${customerName}".`);
+        setReplyDrafts((prev) => ({ ...prev, [reviewId]: "" }));
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to save reply.");
       }
     });
   };
@@ -209,6 +235,53 @@ export function ReviewList({ initialReviews }: ReviewListProps) {
                       <p className="text-sm text-muted-foreground/90 leading-relaxed italic">
                         "{review.comment}"
                       </p>
+                      {review.adminReply ? (
+                        <div className="mt-3 rounded-md border border-primary/20 bg-primary/5 p-3">
+                          <p className="text-[11px] font-bold uppercase tracking-wide text-primary">
+                            Admin Reply
+                          </p>
+                          <p className="text-sm text-foreground mt-1">
+                            {review.adminReply}
+                          </p>
+                        </div>
+                      ) : null}
+                      <div className="mt-3 space-y-2">
+                        <textarea
+                          value={replyDrafts[review.id] ?? ""}
+                          onChange={(e) =>
+                            setReplyDrafts((prev) => ({
+                              ...prev,
+                              [review.id]: e.target.value,
+                            }))
+                          }
+                          disabled={isPending}
+                          rows={2}
+                          className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground font-light focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                          placeholder={
+                            review.adminReply
+                              ? "Update admin reply..."
+                              : "Write an admin reply..."
+                          }
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isPending}
+                          onClick={() =>
+                            handleReplySubmit(review.id, review.customerName)
+                          }
+                          className="cursor-pointer"
+                        >
+                          {isPending ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Send className="size-3.5" />
+                          )}
+                          <span>
+                            {review.adminReply ? "Update Reply" : "Send Reply"}
+                          </span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
 

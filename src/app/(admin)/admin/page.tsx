@@ -1,7 +1,11 @@
-import { count, desc } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import {
+  AlertTriangle,
   ArrowRight,
+  Bell,
   CheckCircle2,
+  CircleAlert,
+  Clock3,
   Mail,
   Package,
   PlusCircle,
@@ -11,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,32 +26,65 @@ import {
 } from "@/components/ui/card";
 import { H1, H2, P } from "@/components/ui/typography";
 import { db } from "@/db";
-import { customers, notifications, orders, products } from "@/db/schema";
+import {
+  customers,
+  ingredients,
+  notifications,
+  orders,
+  products,
+} from "@/db/schema";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   // Fetch system statistics in parallel
-  const [productsResult, ordersResult, customersResult, notificationsResult] =
-    await Promise.all([
-      db.select({ value: count() }).from(products),
-      db.select({ value: count() }).from(orders),
-      db.select({ value: count() }).from(customers),
-      db.select({ value: count() }).from(notifications),
-    ]);
+  const [
+    productsResult,
+    ordersResult,
+    customersResult,
+    notificationsResult,
+    queuedIngredientsResult,
+  ] = await Promise.all([
+    db.select({ value: count() }).from(products),
+    db.select({ value: count() }).from(orders),
+    db.select({ value: count() }).from(customers),
+    db.select({ value: count() }).from(notifications),
+    db
+      .select({ value: count() })
+      .from(ingredients)
+      .where(eq(ingredients.queueStatus, "queued")),
+  ]);
 
   const stats = {
     products: productsResult[0]?.value ?? 0,
     orders: ordersResult[0]?.value ?? 0,
     customers: customersResult[0]?.value ?? 0,
     emails: notificationsResult[0]?.value ?? 0,
+    ingredientQueue: queuedIngredientsResult[0]?.value ?? 0,
   };
 
   // Fetch recent data in parallel for the activity feed
-  const [recentOrders, recentProducts, recentCustomers] = await Promise.all([
+  const [
+    recentOrders,
+    recentProducts,
+    recentCustomers,
+    recentIngredients,
+    recentNotifications,
+  ] = await Promise.all([
     db.select().from(orders).orderBy(desc(orders.createdAt)).limit(3),
     db.select().from(products).orderBy(desc(products.createdAt)).limit(3),
     db.select().from(customers).orderBy(desc(customers.createdAt)).limit(3),
+    db
+      .select()
+      .from(ingredients)
+      .where(eq(ingredients.queueStatus, "queued"))
+      .orderBy(desc(ingredients.createdAt))
+      .limit(3),
+    db
+      .select()
+      .from(notifications)
+      .orderBy(desc(notifications.createdAt))
+      .limit(6),
   ]);
 
   // Map and combine into a single chronological activity feed
@@ -74,6 +112,14 @@ export default async function AdminDashboardPage() {
       description: `${customer.name || customer.email}`,
       date: customer.createdAt,
       status: "active",
+    })),
+    ...recentIngredients.map((ingredient) => ({
+      id: `ingredient-${ingredient.id}`,
+      type: "ingredient" as const,
+      title: "Queued Ingredient Placeholder",
+      description: `${ingredient.name} is unresolved in the import pricing queue.`,
+      date: ingredient.createdAt,
+      status: "needs_pricing",
     })),
   ]
     .sort((a, b) => b.date.getTime() - a.date.getTime())
@@ -136,6 +182,42 @@ export default async function AdminDashboardPage() {
     },
   ];
 
+  const getNotificationBadge = (
+    status: "pending" | "sent" | "failed" | "delivered",
+  ) => {
+    if (status === "failed") {
+      return (
+        <Badge
+          variant="outline"
+          className="border-destructive/30 bg-destructive/10 text-destructive text-[10px] uppercase tracking-wide"
+        >
+          <CircleAlert className="size-3" />
+          Failed
+        </Badge>
+      );
+    }
+    if (status === "pending") {
+      return (
+        <Badge
+          variant="outline"
+          className="border-amber-500/30 bg-amber-500/10 text-amber-600 text-[10px] uppercase tracking-wide"
+        >
+          <Clock3 className="size-3" />
+          Pending
+        </Badge>
+      );
+    }
+    return (
+      <Badge
+        variant="outline"
+        className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 text-[10px] uppercase tracking-wide"
+      >
+        <CheckCircle2 className="size-3" />
+        {status}
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-8">
       {/* Title block */}
@@ -180,6 +262,22 @@ export default async function AdminDashboardPage() {
       <div className="grid gap-6 md:grid-cols-5">
         {/* Quick Actions Panel */}
         <div className="md:col-span-3 space-y-4">
+          <Card className="border border-sky-500/30 bg-sky-500/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold text-sky-700">
+                Ingredient Queue Backlog
+              </CardTitle>
+              <CardDescription className="text-xs text-sky-700/80">
+                {stats.ingredientQueue} unresolved placeholder ingredient
+                {stats.ingredientQueue === 1 ? "" : "s"} require pricing.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button size="sm" variant="outline" asChild>
+                <Link href="/admin/ingredients">Open ingredient queue</Link>
+              </Button>
+            </CardContent>
+          </Card>
           <H2 className="font-heading text-lg font-semibold flex items-center gap-2">
             <PlusCircle className="h-5 w-5 text-primary" />
             <span>Operational Workflows</span>
@@ -240,6 +338,11 @@ export default async function AdminDashboardPage() {
                           <Users className="h-3 w-3" />
                         </div>
                       )}
+                      {act.type === "ingredient" && (
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
+                          <PlusCircle className="h-3 w-3" />
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
@@ -293,6 +396,62 @@ export default async function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border border-border/60 bg-card">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+            <Bell className="size-4 text-primary" />
+            Recent Operational Notifications
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Latest admin-alert events with processing status and error details.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {recentNotifications.length > 0 ? (
+            <ul className="space-y-3">
+              {recentNotifications.map((notification) => (
+                <li
+                  key={notification.id}
+                  className="rounded-lg border border-border/50 bg-muted/20 p-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {notification.subject || "Admin notification"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {notification.errorMessage || "No additional details."}
+                      </p>
+                    </div>
+                    <div className="shrink-0">
+                      {getNotificationBadge(notification.status)}
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                      {notification.type.replace("_", " ")}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {new Date(notification.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  {notification.status === "failed" && (
+                    <p className="mt-2 text-[11px] text-destructive flex items-center gap-1">
+                      <AlertTriangle className="size-3" />
+                      Needs manual follow-up.
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="py-6 text-center text-xs text-muted-foreground">
+              No notifications have been recorded yet.
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

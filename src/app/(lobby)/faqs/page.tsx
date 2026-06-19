@@ -1,3 +1,4 @@
+import { Shell } from "@/components/shell";
 import {
   Accordion,
   AccordionContent,
@@ -27,7 +28,7 @@ export default function FAQsPage() {
   ];
 
   return (
-    <div className="container max-w-3xl py-12 md:py-16 space-y-8 px-4">
+    <Shell className="max-w-3xl space-y-8 py-12 md:py-16">
       <div className="space-y-4 text-center md:text-left">
         <H1>FAQs</H1>
         <P className="text-xl text-muted-foreground">
@@ -48,6 +49,6 @@ export default function FAQsPage() {
           </AccordionItem>
         ))}
       </Accordion>
-    </div>
+    </Shell>
   );
 }

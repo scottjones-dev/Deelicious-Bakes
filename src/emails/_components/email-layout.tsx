@@ -1,5 +1,13 @@
 import type * as React from "react";
-import { Body, Container, Font, Head, Html, Preview } from "react-email";
+import {
+  Body,
+  Container,
+  Font,
+  Head,
+  Html,
+  Preview,
+  Section,
+} from "react-email";
 import { env } from "@/config/env";
 import { EmailFooter } from "./email-footer"; // Import updated footer
 import { theme } from "./theme";
@@ -37,24 +45,29 @@ export const EmailLayout = ({
           backgroundColor: theme.colors.background,
           color: theme.colors.foreground,
           fontFamily: theme.fonts.sans,
-          margin: "0 auto",
-          padding: "40px 20px",
+          margin: "0",
+          padding: "24px 12px",
         }}
       >
-        <Container
-          style={{
-            backgroundColor: theme.colors.card,
-            border: `1px solid ${theme.colors.border}`,
-            borderRadius: theme.radius.lg,
-            padding: "40px",
-            maxWidth: "580px",
-          }}
-        >
-          {children}
+        <Section style={{ width: "100%", padding: "0" }}>
+          <Container
+            width={600}
+            style={{
+              width: "600px",
+              maxWidth: "600px",
+              margin: "0 auto",
+              backgroundColor: theme.colors.card,
+              border: `1px solid ${theme.colors.border}`,
+              borderRadius: theme.radius.lg,
+              padding: "32px",
+            }}
+          >
+            {children}
 
-          {/* Pass the unsubscribe string explicitly down to the footer */}
-          <EmailFooter unsubscribeUrl={unsubscribeUrl} />
-        </Container>
+            {/* Pass the unsubscribe string explicitly down to the footer */}
+            <EmailFooter unsubscribeUrl={unsubscribeUrl} />
+          </Container>
+        </Section>
       </Body>
     </Html>
   );

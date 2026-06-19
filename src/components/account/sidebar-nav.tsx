@@ -15,6 +15,10 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
 export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
   const pathname = usePathname();
 
+  const isItemActive = (href: string) =>
+    pathname === href ||
+    (href !== "/account" && pathname.startsWith(`${href}/`));
+
   return (
     <nav
       className={cn(
@@ -29,7 +33,7 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
           href={item.href}
           className={cn(
             buttonVariants({ variant: "ghost" }),
-            pathname === item.href
+            isItemActive(item.href)
               ? "bg-muted hover:bg-muted text-primary font-bold"
               : "hover:bg-transparent hover:underline text-muted-foreground",
             "justify-start transition-all duration-200",

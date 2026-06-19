@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { H1, P } from "@/components/ui/typography";
+import type { OrderFulfillmentMethod, OrderStatus } from "@/db/schema";
 
 interface CustomerOption {
   id: string;
@@ -45,23 +46,28 @@ export function CreateOrderForm({ customersList }: CreateOrderFormProps) {
 
   // Order Details
   const [note, setNote] = useState("");
-  const [fulfillmentMethod, setFulfillmentMethod] = useState<
-    "collection" | "delivery"
-  >("collection");
+  const [fulfillmentMethod, setFulfillmentMethod] =
+    useState<OrderFulfillmentMethod>("collection");
   const [fulfillmentDate, setFulfillmentDate] = useState("");
   const [fulfillmentTimeSlot, setFulfillmentTimeSlot] = useState(
     "Morning (09:00 - 12:00)",
   );
-  const [status, setStatus] = useState<
-    | "pending"
-    | "paid"
-    | "processing"
-    | "ready_for_collection"
-    | "completed"
-    | "cancelled"
-    | "refunded"
-  >("pending");
+  const [status, setStatus] = useState<OrderStatus>("pending");
   const [total, setTotal] = useState("");
+
+  const isOrderFulfillmentMethod = (
+    value: string,
+  ): value is OrderFulfillmentMethod =>
+    value === "collection" || value === "delivery";
+
+  const isOrderStatus = (value: string): value is OrderStatus =>
+    value === "pending" ||
+    value === "paid" ||
+    value === "processing" ||
+    value === "ready_for_collection" ||
+    value === "completed" ||
+    value === "cancelled" ||
+    value === "refunded";
 
   // Handle Existing Customer Selection
   const handleCustomerChange = (customerId: string) => {
@@ -331,7 +337,11 @@ export function CreateOrderForm({ customersList }: CreateOrderFormProps) {
                 </label>
                 <select
                   value={fulfillmentMethod}
-                  onChange={(e) => setFulfillmentMethod(e.target.value as any)}
+                  onChange={(e) => {
+                    if (isOrderFulfillmentMethod(e.target.value)) {
+                      setFulfillmentMethod(e.target.value);
+                    }
+                  }}
                   className="w-full h-10 px-3 text-sm bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 cursor-pointer"
                 >
                   <option value="collection">Collection from Bakery</option>
@@ -381,7 +391,11 @@ export function CreateOrderForm({ customersList }: CreateOrderFormProps) {
                 </label>
                 <select
                   value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
+                  onChange={(e) => {
+                    if (isOrderStatus(e.target.value)) {
+                      setStatus(e.target.value);
+                    }
+                  }}
                   className="w-full h-10 px-3 text-sm bg-card border border-border rounded-lg text-foreground focus:outline-none cursor-pointer"
                 >
                   <option value="pending">Pending</option>

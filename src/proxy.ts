@@ -30,8 +30,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // --- PATHWAY C: STRATIFIED ADMIN SECURITY ---
-  // If anyone tries to access the admin portal, they must be authenticated and explicitly have the "admin" role
+  // --- PATHWAY C: ADMIN SECURITY ---
+  // Admin portal requires authenticated admin role.
   if (pathname.startsWith("/admin")) {
     if (!session || session.user.role !== "admin") {
       url.pathname = "/"; // Unauthorized entry sends them straight back to main index canvas
