@@ -31,8 +31,7 @@ export function DialogShell({
     };
   }, [router]);
 
-  // Close the dialog when the user clicks outside of it
-  // TODO: useClickOutside is not working as expected. The dialog is not closing when the user clicks outside of it. We need to investigate why this is happening and fix it.
+  // Close the dialog when the user clicks outside of it.
   useClickOutside({
     ref: shellRef,
     handler: () => router.back(),

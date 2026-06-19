@@ -47,7 +47,13 @@ function mergeItemLists(
   const merged = new Map<string, CartItem>();
 
   for (const item of [...primary, ...secondary]) {
-    const key = `${item.productId}:${item.productVariantId}`;
+    const bundleKey = item.bundleComposition
+      ? JSON.stringify(item.bundleComposition)
+      : "";
+    const customizationsKey = item.customizations
+      ? JSON.stringify(item.customizations)
+      : "";
+    const key = `${item.productId}:${item.productVariantId}:${bundleKey}:${customizationsKey}`;
     const existing = merged.get(key);
 
     if (existing) {

@@ -6,7 +6,7 @@ export default function ProductModalNotFound() {
     <Shell variant="centered" className="max-w-md">
       <ErrorCard
         title="Product not found"
-        description="The product may have expired or you may have already updated your product"
+        description="The product may have been removed, or the link is no longer valid."
         retryLink="/"
         retryLinkText="Go to Home"
       />

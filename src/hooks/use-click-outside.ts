@@ -15,12 +15,12 @@ export function useClickOutside({ ref, handler }: UseClickOutsideProps) {
       handler(event);
     };
 
-    document.addEventListener("mousedown", listener);
-    document.addEventListener("touchstart", listener);
+    document.addEventListener("mousedown", listener, true);
+    document.addEventListener("touchstart", listener, true);
 
     return () => {
-      document.removeEventListener("mousedown", listener);
-      document.removeEventListener("touchstart", listener);
+      document.removeEventListener("mousedown", listener, true);
+      document.removeEventListener("touchstart", listener, true);
     };
   }, [ref, handler]);
 }

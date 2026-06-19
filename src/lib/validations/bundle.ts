@@ -43,7 +43,7 @@ export const bundleInputSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["percentageDiscount"],
-          message: "Percentage discount must be between 0 and 100",
+          message: "Percentage discount must be greater than 0 and at most 100",
         });
       }
     }
