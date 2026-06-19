@@ -3,70 +3,40 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import type { OrderFulfillmentMethod, OrderStatus } from "@/db/schema";
 import { customers, orders } from "@/db/schema";
-import { assertAdminSession } from "@/lib/admin-auth";
-import {
-  createAdminOperationalNotification,
-  writeAuditLog,
-} from "@/lib/admin-events";
 import { stripe } from "@/lib/stripe";
 
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "An unknown error occurred.";
-}
-
-export async function updateOrderStatus(orderId: string, status: OrderStatus) {
+export async function updateOrderStatus(
+  orderId: string,
+  status:
+    | "pending"
+    | "paid"
+    | "processing"
+    | "ready_for_collection"
+    | "completed"
+    | "cancelled"
+    | "refunded",
+) {
   try {
-    await assertAdminSession();
-
-    const previousOrder = await db.query.orders.findFirst({
-      where: eq(orders.id, orderId),
-    });
     const [order] = await db
       .update(orders)
       .set({ status, updatedAt: new Date() })
       .where(eq(orders.id, orderId))
       .returning();
 
-    await Promise.all([
-      writeAuditLog({
-        entityType: "order",
-        entityId: order.id,
-        action: "status_update",
-        beforeData: previousOrder ?? null,
-        afterData: order,
-      }),
-      createAdminOperationalNotification({
-        subject: "Order status updated",
-        message: `Order ${order.id} status changed to ${status}.`,
-        orderId: order.id,
-        customerId: order.customerId,
-      }),
-    ]);
-
     revalidatePath("/admin/orders");
-    revalidatePath("/admin");
     return { success: true, order };
-  } catch (error: unknown) {
-    await createAdminOperationalNotification({
-      subject: "Order status update failed",
-      message: `Could not update order ${orderId}: ${getErrorMessage(error)}.`,
-      status: "failed",
-      orderId,
-    });
+  } catch (error: any) {
     console.error("Update order status error:", error);
     return {
       success: false,
-      error: getErrorMessage(error) || "Failed to update order status.",
+      error: error.message || "Failed to update order status.",
     };
   }
 }
 
 export async function syncOrdersWithStripeAction() {
   try {
-    await assertAdminSession();
-
     // Sync stripe orders manually
     // 1. Fetch recent payment intents or checkouts from Stripe
     const sessions = await stripe.checkout.sessions.list({ limit: 50 });
@@ -104,28 +74,18 @@ export async function syncOrdersWithStripeAction() {
           }
 
           // Create localized order in DB
-          const [createdOrder] = await db
-            .insert(orders)
-            .values({
-              customerId: customerRecord.id,
-              status: "paid",
-              fulfillmentMethod: session.shipping_cost
-                ? "delivery"
-                : "collection",
-              name,
-              email,
-              phone: session.customer_details.phone || null,
-              subtotal: ((session.amount_subtotal || 0) / 100).toFixed(2),
-              total: ((session.amount_total || 0) / 100).toFixed(2),
-              stripePaymentIntentId: session.payment_intent as string,
-            })
-            .returning();
-
-          await writeAuditLog({
-            entityType: "order",
-            entityId: createdOrder.id,
-            action: "sync_from_stripe",
-            afterData: createdOrder,
+          await db.insert(orders).values({
+            customerId: customerRecord.id,
+            status: "paid",
+            fulfillmentMethod: session.shipping_cost
+              ? "delivery"
+              : "collection",
+            name,
+            email,
+            phone: session.customer_details.phone || null,
+            subtotal: ((session.amount_subtotal || 0) / 100).toFixed(2),
+            total: ((session.amount_total || 0) / 100).toFixed(2),
+            stripePaymentIntentId: session.payment_intent as string,
           });
 
           syncedCount++;
@@ -133,28 +93,16 @@ export async function syncOrdersWithStripeAction() {
       }
     }
 
-    await createAdminOperationalNotification({
-      subject: "Stripe orders synced",
-      message: `Order sync completed with ${syncedCount} new order(s) from Stripe.`,
-      status: "sent",
-    });
-
     revalidatePath("/admin/orders");
-    revalidatePath("/admin");
     return {
       success: true,
       message: `Sync complete! Added ${syncedCount} new Stripe orders to local database.`,
     };
-  } catch (error: unknown) {
-    await createAdminOperationalNotification({
-      subject: "Stripe order sync failed",
-      message: getErrorMessage(error),
-      status: "failed",
-    });
+  } catch (error: any) {
     console.error("Sync orders error:", error);
     return {
       success: false,
-      error: getErrorMessage(error) || "Failed to sync orders with Stripe.",
+      error: error.message || "Failed to sync orders with Stripe.",
     };
   }
 }
@@ -166,15 +114,20 @@ export async function createManualOrderAction(data: {
   email: string;
   phone?: string;
   note?: string;
-  fulfillmentMethod: OrderFulfillmentMethod;
+  fulfillmentMethod: "collection" | "delivery";
   fulfillmentDate?: string;
   fulfillmentTimeSlot?: string;
   total: string;
-  status: OrderStatus;
+  status:
+    | "pending"
+    | "paid"
+    | "processing"
+    | "ready_for_collection"
+    | "completed"
+    | "cancelled"
+    | "refunded";
 }) {
   try {
-    await assertAdminSession();
-
     const cleanEmail = data.email.toLowerCase().trim();
     let finalCustomerId = data.customerId;
 
@@ -230,35 +183,13 @@ export async function createManualOrderAction(data: {
       })
       .returning();
 
-    await Promise.all([
-      writeAuditLog({
-        entityType: "order",
-        entityId: order.id,
-        action: "create",
-        afterData: order,
-      }),
-      createAdminOperationalNotification({
-        subject: "Manual order created",
-        message: `Order ${order.id} was created for ${order.name}.`,
-        status: "sent",
-        orderId: order.id,
-        customerId: order.customerId,
-      }),
-    ]);
-
     revalidatePath("/admin/orders");
-    revalidatePath("/admin");
     return { success: true, order };
-  } catch (error: unknown) {
-    await createAdminOperationalNotification({
-      subject: "Manual order creation failed",
-      message: getErrorMessage(error),
-      status: "failed",
-    });
+  } catch (error: any) {
     console.error("Create manual order error:", error);
     return {
       success: false,
-      error: getErrorMessage(error) || "Failed to create manual order.",
+      error: error.message || "Failed to create manual order.",
     };
   }
 }

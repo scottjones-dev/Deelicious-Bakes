@@ -1,9 +1,8 @@
-import { Shell } from "@/components/shell";
 import { H1, H2, P } from "@/components/ui/typography";
 
 export default function TermsPage() {
   return (
-    <Shell className="max-w-3xl space-y-8 py-12 md:py-16">
+    <div className="container max-w-3xl py-12 md:py-16 space-y-8 px-4">
       <div className="space-y-4 text-center md:text-left">
         <H1>Terms of Service</H1>
         <P className="text-xl text-muted-foreground">
@@ -33,6 +32,6 @@ export default function TermsPage() {
           transit or storage.
         </P>
       </div>
-    </Shell>
+    </div>
   );
 }

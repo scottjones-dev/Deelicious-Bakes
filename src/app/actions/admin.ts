@@ -6,11 +6,6 @@ import { revalidatePath } from "next/cache";
 import { env } from "@/config/env";
 import { db } from "@/db";
 import { customers, user } from "@/db/schema";
-import { assertAdminSession } from "@/lib/admin-auth";
-import {
-  createAdminOperationalNotification,
-  writeAuditLog,
-} from "@/lib/admin-events";
 import { auth } from "@/lib/auth";
 import { resend } from "@/lib/resend";
 import { stripe } from "@/lib/stripe";
@@ -21,8 +16,6 @@ import { stripe } from "@/lib/stripe";
 
 export async function syncCustomersAction() {
   try {
-    await assertAdminSession();
-
     const allCustomers = await db.select().from(customers);
     let syncedStripe = 0;
     let syncedResend = 0;
@@ -40,14 +33,6 @@ export async function syncCustomersAction() {
             .update(customers)
             .set({ stripeCustomerId: stripeCust.id })
             .where(eq(customers.id, customer.id));
-
-          await writeAuditLog({
-            entityType: "customer",
-            entityId: customer.id,
-            action: "stripe_linked",
-            beforeData: customer,
-            afterData: { ...customer, stripeCustomerId: stripeCust.id },
-          });
 
           syncedStripe++;
         } catch (stripeErr) {
@@ -91,12 +76,6 @@ export async function syncCustomersAction() {
       }
     }
 
-    await createAdminOperationalNotification({
-      subject: "Customers synced",
-      message: `Customer sync completed: ${syncedStripe} Stripe profile(s) linked and ${syncedResend} Resend contact(s) updated.`,
-      status: "sent",
-    });
-
     revalidatePath("/admin/customers");
     return {
       success: true,
@@ -119,8 +98,6 @@ export async function onboardCustomerAction(data: {
   marketingConsent: boolean;
 }) {
   try {
-    await assertAdminSession();
-
     const cleanEmail = data.email.toLowerCase().trim();
 
     // 1. Check if user already exists
@@ -168,29 +145,12 @@ export async function onboardCustomerAction(data: {
       .where(eq(user.id, createdUser.id));
 
     // 5. Create local customer profile first so that syncUserToStripe updates it
-    const [createdCustomer] = await db
-      .insert(customers)
-      .values({
-        userId: createdUser.id,
-        name: data.name,
-        email: cleanEmail,
-        phone: data.phone || null,
-        marketingConsent: data.marketingConsent,
-      })
-      .returning();
-
-    await writeAuditLog({
-      entityType: "customer",
-      entityId: createdCustomer.id,
-      action: "create",
-      afterData: createdCustomer,
-    });
-
-    await writeAuditLog({
-      entityType: "user",
-      entityId: createdUser.id,
-      action: "create_for_customer_onboarding",
-      afterData: createdUser,
+    await db.insert(customers).values({
+      userId: createdUser.id,
+      name: data.name,
+      email: cleanEmail,
+      phone: data.phone || null,
+      marketingConsent: data.marketingConsent,
     });
 
     // 6. Trigger Trigger.dev async background sync for Stripe, Resend, and Welcome email!

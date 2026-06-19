@@ -1,5 +1,4 @@
 import * as z from "zod";
-import { recipeInputSchema } from "./recipe";
 
 export const storedFileSchema = z.object({
   id: z.string(),
@@ -13,21 +12,12 @@ export const createProductSchema = z.object({
   name: z.string().min(1, "Name is required"),
   slug: z.string().min(1, "Slug is required"),
   description: z.string().optional().nullable(),
-  sku: z.string().optional().nullable(),
-  dietaryInfo: z.string().optional().nullable(),
-  ingredientsInfo: z.string().optional().nullable(),
-  sizesAndServes: z.string().optional().nullable(),
-  shelfLifeStorage: z.string().optional().nullable(),
-  arrivalInfo: z.string().optional().nullable(),
-  deliveryOptions: z.string().optional().nullable(),
   images: z.array(storedFileSchema).nullable().optional(),
   categoryId: z.string().min(1, "Category is required"),
-  productType: z.enum(["standard", "bundle"]).default("standard"),
   status: z.enum(["active", "draft", "archived"]).default("active"),
   leadTimeDays: z.number().int().nonnegative().default(0),
   isCollectionOnly: z.boolean().default(false),
   availableDays: z.array(z.number().int().min(0).max(6)).nullable().optional(),
-  recipe: recipeInputSchema.optional(),
 });
 
 export const updateProductSchema = createProductSchema.extend({

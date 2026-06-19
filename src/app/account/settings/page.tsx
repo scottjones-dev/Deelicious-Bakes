@@ -1,10 +1,8 @@
 "use client";
 
 import { Loader2, Save } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,26 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { H2, P } from "@/components/ui/typography";
+import { UserAvatarUploader } from "@/components/uploadthing/avatar-uploader";
 import { authClient } from "@/lib/auth-client";
-import { appendAuthCallback } from "@/lib/auth-redirect";
-
-function getMarketingConsent(user: unknown): boolean {
-  if (!user || typeof user !== "object") return false;
-  const maybeUser = user as Record<string, unknown>;
-  return maybeUser.marketingConsent === true;
-}
 
 export default function SettingsPage() {
   const { data: session, isPending: sessionPending } = authClient.useSession();
-  const [marketingConsent, setMarketingConsent] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const marketingConsentEnabled = getMarketingConsent(session?.user);
-
-  useEffect(() => {
-    if (!session) return;
-    setMarketingConsent(marketingConsentEnabled);
-  }, [marketingConsentEnabled, session]);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   if (sessionPending) {
     return (
@@ -46,73 +30,30 @@ export default function SettingsPage() {
     );
   }
 
-  if (!session) {
-    return (
-      <div className="flex flex-col items-center gap-4 text-center">
-        <P>Please sign in to update your account settings.</P>
-        <Link
-          href={appendAuthCallback("/sign-in", "/account/settings")}
-          className="text-primary hover:underline"
-        >
-          Sign In
-        </Link>
-      </div>
-    );
-  }
+  if (!session) return null;
 
-  const sessionUser = session?.user;
-  if (!sessionUser) {
-    return (
-      <div className="flex flex-col items-center gap-4 text-center">
-        <P>Please sign in to update your account settings.</P>
-        <Link
-          href={appendAuthCallback("/sign-in", "/account/settings")}
-          className="text-primary hover:underline"
-        >
-          Sign In
-        </Link>
-      </div>
-    );
-  }
-  const hasConsentChanged = marketingConsent !== marketingConsentEnabled;
-
-  async function handleSavePreferences(e: React.FormEvent<HTMLFormElement>) {
+  async function handleUpdateProfile(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!hasConsentChanged) return;
+    setIsUpdating(true);
 
-    setIsSaving(true);
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name") as string;
+    const marketingConsent = formData.get("marketing-consent") === "on";
 
-    try {
-      const response = await fetch("/api/emails/preferences", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          name: sessionUser.name,
-          subscribe: marketingConsent,
-        }),
-      });
+    const { error } = await authClient.updateUser({
+      name,
+      // @ts-expect-error - marketingConsent is an additionalField
+      marketingConsent,
+    });
 
-      const data = (await response.json()) as {
-        error?: string;
-        message?: string;
-        subscribed?: boolean;
-      };
+    setIsUpdating(false);
 
-      if (!response.ok) {
-        throw new Error(data.error || "Unable to save preferences.");
-      }
-
-      setMarketingConsent(Boolean(data.subscribed));
-      toast.success(data.message || "Preferences saved.");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unable to save preferences.";
-      toast.error(message);
-    } finally {
-      setIsSaving(false);
+    if (error) {
+      toast.error(error.message || "Failed to update profile");
+      return;
     }
+
+    toast.success("Profile updated successfully! 🥐");
   }
 
   return (
@@ -135,29 +76,27 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col sm:flex-row items-center gap-6 pb-4">
-              <Avatar className="h-24 w-24 border-2 border-border">
-                <AvatarImage src={sessionUser.image ?? undefined} />
-                <AvatarFallback className="text-xl font-bold uppercase text-muted-foreground">
-                  {sessionUser.name.slice(0, 2)}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatarUploader
+                currentImage={session.user.image}
+                fallbackName={session.user.name}
+              />
               <div className="text-center sm:text-left space-y-1">
                 <p className="text-sm font-medium">Profile Photo</p>
                 <p className="text-xs text-muted-foreground">
-                  Profile photo updates are disabled for account security.
+                  Click the circle to upload a new photo.
                 </p>
               </div>
             </div>
 
-            <form className="space-y-4" onSubmit={handleSavePreferences}>
+            <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div className="grid gap-2">
                 <Label htmlFor="name">Display Name</Label>
                 <Input
                   id="name"
                   name="name"
-                  value={sessionUser.name}
-                  disabled
-                  className="bg-muted/50 border-primary/5 cursor-not-allowed"
+                  defaultValue={session.user.name}
+                  required
+                  className="bg-background/50 border-primary/10"
                 />
               </div>
 
@@ -166,12 +105,12 @@ export default function SettingsPage() {
                 <Input
                   id="email"
                   type="email"
-                  value={sessionUser.email}
+                  value={session.user.email}
                   disabled
                   className="bg-muted/50 border-primary/5 cursor-not-allowed"
                 />
                 <p className="text-[10px] text-muted-foreground italic">
-                  Email and profile details are managed by administrators only.
+                  Email changes are coming soon.
                 </p>
               </div>
 
@@ -192,24 +131,53 @@ export default function SettingsPage() {
                   <Switch
                     id="marketing-consent"
                     name="marketing-consent"
-                    checked={marketingConsent}
-                    onCheckedChange={setMarketingConsent}
-                    disabled={isSaving}
+                    defaultChecked={(session.user as any).marketingConsent}
                   />
                 </div>
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button type="submit" disabled={isSaving || !hasConsentChanged}>
-                  {isSaving ? (
+                <Button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="bg-primary text-primary-foreground"
+                >
+                  {isUpdating ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Save className="mr-2 h-4 w-4" />
                   )}
-                  Save preferences
+                  Save Changes
                 </Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+        {/* TODO Remove this as customers wont see stripe this is admin only needs moved to admin */}
+        {/* Security / Subscription Status */}
+        <Card className="border-primary/10 shadow-sm bg-card/50 border-l-4 border-l-accent">
+          <CardHeader>
+            <CardTitle className="font-heading">
+              Billing & Subscriptions
+            </CardTitle>
+            <CardDescription>
+              Manage your payments and Stripe customer portal.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-4">
+              <P className="text-sm">
+                Access your Stripe portal to view receipts, manage payment
+                methods, and see your subscription history.
+              </P>
+              <Button
+                variant="outline"
+                className="w-fit border-accent text-accent hover:bg-accent/10"
+                disabled
+              >
+                Open Stripe Portal (Coming Soon)
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

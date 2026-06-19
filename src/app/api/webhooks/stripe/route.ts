@@ -7,9 +7,7 @@ import { carts } from "@/db/schema/carts";
 import { orderItems, orders } from "@/db/schema/orders";
 import { payments } from "@/db/schema/payments";
 import { stockMovements, stocks } from "@/db/schema/stocks";
-import { createAdminOperationalNotification } from "@/lib/admin-events";
 import { stripe } from "@/lib/stripe";
-import { getBundleCompositionFromCustomizations } from "@/lib/validations/cart";
 
 type StripeWebhookCheckoutSession = {
   metadata?: {
@@ -101,41 +99,7 @@ export async function POST(req: Request) {
             .where(eq(orderItems.orderId, orderId));
 
           for (const item of orderItemsList) {
-            const bundleComposition = getBundleCompositionFromCustomizations(
-              item.customizations,
-            );
-
-            if (bundleComposition) {
-              for (const bundleItem of bundleComposition.items) {
-                const quantityToDecrement = bundleItem.quantity * item.quantity;
-                const currentStock = await tx.query.stocks.findFirst({
-                  where: eq(
-                    stocks.productVariantId,
-                    bundleItem.productVariantId,
-                  ),
-                });
-
-                if (!currentStock) {
-                  continue;
-                }
-
-                const newQuantity = currentStock.quantity - quantityToDecrement;
-
-                await tx
-                  .update(stocks)
-                  .set({ quantity: newQuantity })
-                  .where(eq(stocks.id, currentStock.id));
-
-                await tx.insert(stockMovements).values({
-                  stockId: currentStock.id,
-                  orderId,
-                  type: "sale",
-                  quantityChange: -quantityToDecrement,
-                  quantityAfter: newQuantity,
-                  reason: `Sold via Bundle ${item.productName} in Order #${orderId}`,
-                });
-              }
-            } else if (item.productVariantId) {
+            if (item.productVariantId) {
               const currentStock = await tx.query.stocks.findFirst({
                 where: eq(stocks.productVariantId, item.productVariantId),
               });
@@ -182,19 +146,7 @@ export async function POST(req: Request) {
         console.log(
           `✅ Order ${orderId} successfully locked, paid, and stocked.`,
         );
-        await createAdminOperationalNotification({
-          subject: "Stripe order paid",
-          message: `Order ${orderId} payment confirmed via Stripe webhook.`,
-          status: "delivered",
-          orderId,
-        });
       } catch (dbError) {
-        await createAdminOperationalNotification({
-          subject: "Stripe webhook fulfillment failed",
-          message: `Order ${orderId} webhook processing failed: ${getErrorMessage(dbError)}`,
-          status: "failed",
-          orderId,
-        });
         console.error(
           `❌ Transaction failed during webhook order fulfillment for order ${orderId}:`,
           dbError,
@@ -204,12 +156,6 @@ export async function POST(req: Request) {
         });
       }
     } else {
-      await createAdminOperationalNotification({
-        subject: "Stripe checkout metadata issue",
-        message:
-          "Checkout session completed without orderId metadata. Manual investigation required.",
-        status: "failed",
-      });
       console.warn(
         "⚠️ Checkout session completed, but metadata does not contain orderId.",
       );

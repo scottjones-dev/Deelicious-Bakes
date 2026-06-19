@@ -32,15 +32,16 @@ export function MainNav({ items }: MainNavProps) {
             (item) =>
               item.href && (
                 <NavigationMenuItem key={item.title}>
-                  <NavigationMenuLink
-                    asChild
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      "h-auto bg-transparent",
-                    )}
-                  >
-                    <Link href={item.href}>{item.title}</Link>
-                  </NavigationMenuLink>
+                  <Link href={item.href} legacyBehavior passHref>
+                    <NavigationMenuLink
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        "h-auto bg-transparent",
+                      )}
+                    >
+                      {item.title}
+                    </NavigationMenuLink>
+                  </Link>
                 </NavigationMenuItem>
               ),
           )}

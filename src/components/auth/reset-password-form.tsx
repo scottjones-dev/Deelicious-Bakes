@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -17,7 +16,6 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
-import { appendAuthCallback, getAuthCallbackPath } from "@/lib/auth-redirect";
 
 export function ResetPasswordForm({
   ...props
@@ -25,13 +23,6 @@ export function ResetPasswordForm({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, setIsPending] = useState(false);
-  const token = searchParams.get("token");
-  const callbackUrl = getAuthCallbackPath(searchParams);
-  const signInHref = appendAuthCallback("/sign-in", callbackUrl);
-  const forgotPasswordHref = appendAuthCallback(
-    "/forgot-password",
-    callbackUrl,
-  );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -40,6 +31,8 @@ export function ResetPasswordForm({
     const formData = new FormData(e.currentTarget);
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirm-password") as string;
+    const token = searchParams.get("token");
+
     if (!token) {
       toast.error("Missing reset token");
       setIsPending(false);
@@ -65,30 +58,7 @@ export function ResetPasswordForm({
     }
 
     toast.success("Password reset successfully!");
-    router.push(signInHref);
-  }
-
-  if (!token) {
-    return (
-      <Card {...props} className="border-primary/10 shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-heading text-foreground">
-            Invalid Reset Link
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            This password reset link is missing a token or has been malformed.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <Button asChild className="w-full h-11">
-            <Link href={forgotPasswordHref}>Request a new reset link</Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full h-11">
-            <Link href={signInHref}>Back to Sign In</Link>
-          </Button>
-        </CardContent>
-      </Card>
-    );
+    router.push("/sign-in");
   }
 
   return (

@@ -11,14 +11,23 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { Button } from "@/components/ui/button";
 import { H1, Lead, P, Signature } from "@/components/ui/typography";
 import { db } from "@/db";
 import { products } from "@/db/schema";
-import { getCategoryImage, getProductImage } from "@/lib/image";
 
 export const dynamic = "force-dynamic";
+
+const categoryFallbacks: Record<string, string> = {
+  cupcakes:
+    "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600",
+  "celebration-cakes":
+    "https://images.unsplash.com/photo-1535141192574-5d4897c13636?auto=format&fit=crop&q=80&w=600",
+  "brownies-traybakes":
+    "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&q=80&w=600",
+  macarons:
+    "https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&q=80&w=600",
+};
 
 export default async function HomePage() {
   const dbCategories = await db.query.categories.findMany({
@@ -36,17 +45,6 @@ export default async function HomePage() {
     where: eq(products.status, "active"),
     with: {
       category: true,
-      variants: {
-        columns: {
-          id: true,
-          name: true,
-          price: true,
-          position: true,
-          disabled: true,
-        },
-        where: (table, { eq }) => eq(table.disabled, false),
-        orderBy: (table, { asc }) => [asc(table.position)],
-      },
     },
   });
 
@@ -111,10 +109,9 @@ export default async function HomePage() {
             <div className="absolute inset-0 bg-radial-gradient(circle,rgba(var(--primary),0.05)_0%,transparent_70%) blur-3xl pointer-events-none" />
             <div className="relative w-80 h-80 md:w-96 md:h-96 rounded-2xl overflow-hidden border border-border/40 shadow-xl rotate-3 hover:rotate-0 transition-transform duration-500">
               <Image
-                src="https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=800"
+                src="https://images.unsplash.com/photo-1535141192574-5d4897c13636?auto=format&fit=crop&q=80&w=800"
                 alt="Beautiful Layer Cake"
                 fill
-                sizes="(min-width: 1024px) 24rem, 20rem"
                 className="object-cover"
                 priority
               />
@@ -140,7 +137,10 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {dbCategories.map((category) => {
-              const categoryImg = getCategoryImage(category);
+              const categoryImg =
+                category.image ||
+                categoryFallbacks[category.slug] ||
+                "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=400";
               return (
                 <div
                   key={category.id}
@@ -151,15 +151,14 @@ export default async function HomePage() {
                       src={categoryImg}
                       alt={category.name}
                       fill
-                      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
-                  <div className="p-5 flex flex-col grow space-y-2">
+                  <div className="p-5 flex flex-col flex-grow space-y-2">
                     <h3 className="font-sans font-bold text-lg text-foreground group-hover:text-primary transition-colors">
                       {category.name}
                     </h3>
-                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed grow">
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed flex-grow">
                       {category.description}
                     </p>
                     <Button
@@ -214,8 +213,18 @@ export default async function HomePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {dbProducts.map((product) => {
-                const primaryVariant = product.variants[0];
-                const productImg = getProductImage(product);
+                let productImg =
+                  "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=400";
+                if (
+                  product.images &&
+                  Array.isArray(product.images) &&
+                  product.images.length > 0
+                ) {
+                  productImg = product.images[0].url;
+                } else if (product.category?.slug) {
+                  productImg =
+                    categoryFallbacks[product.category.slug] || productImg;
+                }
 
                 return (
                   <div
@@ -227,11 +236,10 @@ export default async function HomePage() {
                         src={productImg}
                         alt={product.name}
                         fill
-                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover group-hover:scale-102 transition-transform duration-500"
                       />
                     </div>
-                    <div className="p-5 flex flex-col grow space-y-2">
+                    <div className="p-5 flex flex-col flex-grow space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-[10px] uppercase font-bold tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                           {product.category?.name || "Gourmet"}
@@ -241,37 +249,24 @@ export default async function HomePage() {
                           {product.leadTimeDays}d lead
                         </span>
                       </div>
-                      <h3 className="font-sans font-bold text-base text-foreground leading-snug line-clamp-1 grow">
-                        <Link
-                          href={`/store/products/${product.slug}`}
-                          className="hover:text-primary"
-                        >
-                          {product.name}
-                        </Link>
+                      <h3 className="font-sans font-bold text-base text-foreground leading-snug line-clamp-1 flex-grow">
+                        {product.name}
                       </h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed grow">
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed flex-grow">
                         {product.description}
                       </p>
-                      {primaryVariant ? (
-                        <AddToCartButton
-                          productId={product.id}
-                          productVariantId={primaryVariant.id}
-                          variant="secondary"
-                          size="sm"
-                          className="w-full mt-2 font-semibold"
-                        />
-                      ) : (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          asChild
-                          className="w-full mt-2 font-semibold"
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        asChild
+                        className="w-full mt-2 font-semibold"
+                      >
+                        <Link
+                          href={`/store/${product.category?.slug ?? "all"}`}
                         >
-                          <Link href={`/store/products/${product.slug}`}>
-                            View product
-                          </Link>
-                        </Button>
-                      )}
+                          Order Inquiry
+                        </Link>
+                      </Button>
                     </div>
                   </div>
                 );

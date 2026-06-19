@@ -1,12 +1,11 @@
 import { CakeSlice } from "lucide-react";
 import Link from "next/link";
-import { Shell } from "@/components/shell";
 import { Button } from "@/components/ui/button";
 import { H1, P } from "@/components/ui/typography";
 
 export default function BuildACakePage() {
   return (
-    <Shell className="flex min-h-[70vh] flex-col items-center justify-center py-16 text-center">
+    <div className="container mx-auto flex min-h-[70vh] flex-col items-center justify-center text-center px-4 py-16">
       <div className="mx-auto flex max-w-125 flex-col items-center space-y-6">
         <div className="rounded-full bg-primary/10 p-6 text-primary">
           <CakeSlice className="size-16 animate-bounce" />
@@ -30,6 +29,6 @@ export default function BuildACakePage() {
           <Link href="/">Back to Home</Link>
         </Button>
       </div>
-    </Shell>
+    </div>
   );
 }

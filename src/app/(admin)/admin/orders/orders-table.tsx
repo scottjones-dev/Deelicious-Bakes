@@ -19,13 +19,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import type { OrderFulfillmentMethod, OrderStatus } from "@/db/schema";
 
 interface OrderItem {
   id: string;
   customerId: string;
-  status: OrderStatus;
-  fulfillmentMethod: OrderFulfillmentMethod;
+  status:
+    | "pending"
+    | "paid"
+    | "processing"
+    | "ready_for_collection"
+    | "completed"
+    | "cancelled"
+    | "refunded";
+  fulfillmentMethod: "delivery" | "collection";
   name: string;
   email: string;
   phone: string | null;
@@ -46,15 +52,6 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
   const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const isOrderStatus = (value: string): value is OrderStatus =>
-    value === "pending" ||
-    value === "paid" ||
-    value === "processing" ||
-    value === "ready_for_collection" ||
-    value === "completed" ||
-    value === "cancelled" ||
-    value === "refunded";
-
   const handleSync = () => {
     startTransition(async () => {
       const res = await syncOrdersWithStripeAction();
@@ -71,10 +68,10 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
   const handleStatusChange = (
     orderId: string,
     name: string,
-    status: OrderStatus,
+    status: string,
   ) => {
     startTransition(async () => {
-      const res = await updateOrderStatus(orderId, status);
+      const res = await updateOrderStatus(orderId, status as any);
 
       if (res.success) {
         toast.success(`Order status updated to "${status}" for ${name}!`);
@@ -250,13 +247,11 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
                               value={ord.status}
                               disabled={isPending}
                               onChange={(e) =>
-                                isOrderStatus(e.target.value)
-                                  ? handleStatusChange(
-                                      ord.id,
-                                      ord.name,
-                                      e.target.value,
-                                    )
-                                  : undefined
+                                handleStatusChange(
+                                  ord.id,
+                                  ord.name,
+                                  e.target.value,
+                                )
                               }
                               className={`w-full h-8 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider rounded-lg border focus:outline-none focus:ring-1 focus:ring-primary/40 cursor-pointer transition-colors ${getStatusBadgeClass(
                                 ord.status,

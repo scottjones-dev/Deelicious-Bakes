@@ -18,18 +18,22 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { P } from "@/components/ui/typography";
 import { authClient } from "@/lib/auth-client";
-import { appendAuthCallback, getAuthCallbackPath } from "@/lib/auth-redirect";
 
 export function SigninForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, setIsPending] = useState(false);
-  const callbackUrl = getAuthCallbackPath(searchParams);
-  const signUpHref = appendAuthCallback("/sign-up", callbackUrl);
-  const forgotPasswordHref = appendAuthCallback(
-    "/forgot-password",
-    callbackUrl,
-  );
+  const callbackUrl = (() => {
+    const raw =
+      searchParams.get("callbackUrl") ??
+      searchParams.get("callbackURL") ??
+      "/account";
+    return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/account";
+  })();
+  const signUpHref =
+    callbackUrl === "/account"
+      ? "/sign-up"
+      : `/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -84,7 +88,7 @@ export function SigninForm({ ...props }: React.ComponentProps<typeof Card>) {
               <div className="flex items-center justify-between">
                 <FieldLabel htmlFor="password">Password</FieldLabel>
                 <Link
-                  href={forgotPasswordHref}
+                  href="/forgot-password"
                   className="text-xs text-primary hover:underline font-medium"
                 >
                   Forgot password?

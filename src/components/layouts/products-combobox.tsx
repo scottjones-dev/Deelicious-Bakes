@@ -72,7 +72,6 @@ export function ProductsCombobox() {
       <Button
         variant="outline"
         className="relative size-9 p-0 xl:h-10 xl:w-60 xl:justify-start xl:px-3 xl:py-2"
-        aria-label="Search products"
         onClick={() => setOpen(true)}
       >
         <Search className="size-4 xl:mr-2" aria-hidden="true" />
@@ -119,9 +118,7 @@ export function ProductsCombobox() {
                       className="h-9"
                       value={item.name}
                       onSelect={() =>
-                        onSelect(() =>
-                          router.push(`/store/products/${item.slug}`),
-                        )
+                        onSelect(() => router.push(`/product/${item.id}`))
                       }
                     >
                       <span className="truncate">{item.name}</span>

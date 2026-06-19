@@ -1,9 +1,7 @@
 "use client";
 
 import {
-  Archive,
   Cake,
-  Edit3,
   EyeOff,
   Globe,
   Loader2,
@@ -11,6 +9,7 @@ import {
   RefreshCw,
   Search,
   ShoppingBag,
+  Trash,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -37,15 +36,14 @@ interface ProductItem {
   name: string;
   slug: string;
   description: string | null;
-  productType: "standard" | "bundle";
   status: "active" | "draft" | "archived";
   leadTimeDays: number;
   isCollectionOnly: boolean;
+  images: { url: string }[] | null | undefined;
   category?: {
     id: string;
     name: string;
     slug: string;
-    image: string | null;
   };
 }
 
@@ -54,17 +52,6 @@ interface ProductsTableProps {
 }
 
 export function ProductsTable({ initialProducts }: ProductsTableProps) {
-  const categoryFallbacks: Record<string, string> = {
-    cupcakes:
-      "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600",
-    "celebration-cakes":
-      "https://images.unsplash.com/photo-1535141192574-5d4897c13636?auto=format&fit=crop&q=80&w=600",
-    "brownies-traybakes":
-      "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&q=80&w=600",
-    macarons:
-      "https://images.unsplash.com/photo-1569864358642-9d1684040f43?auto=format&fit=crop&q=80&w=600",
-  };
-
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [syncingId, setSyncingId] = useState<string | null>(null);
@@ -90,7 +77,7 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
   const handleDelete = (id: string, name: string) => {
     if (
       !window.confirm(
-        `Archive "${name}"? This keeps the record in your catalog history and removes it from active selling.`,
+        `Are you sure you want to permanently delete the product "${name}"? This will also archive it on Stripe.`,
       )
     )
       return;
@@ -99,12 +86,10 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
       const res = await deleteProduct(id);
 
       if (res.success) {
-        toast.success(
-          res.message || `Product "${name}" archived successfully.`,
-        );
+        toast.success(`Product "${name}" deleted successfully.`);
         router.refresh();
       } else {
-        toast.error(res.error || "Failed to archive product.");
+        toast.error(res.error || "Failed to delete product.");
       }
     });
   };
@@ -212,7 +197,6 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
                     <th className="py-3 px-4">Product Details</th>
                     <th className="py-3 px-4">Slug</th>
                     <th className="py-3 px-4">Category</th>
-                    <th className="py-3 px-4">Type</th>
                     <th className="py-3 px-4">Status</th>
                     <th className="py-3 px-4 text-center">Lead Time</th>
                     <th className="py-3 px-4 text-right">Actions</th>
@@ -221,10 +205,9 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
                 <tbody className="divide-y divide-border/40 text-sm">
                   {filteredProducts.map((prod) => {
                     const imageUrl =
-                      prod.category?.image ||
-                      (prod.category?.slug
-                        ? categoryFallbacks[prod.category.slug]
-                        : null);
+                      prod.images && prod.images.length > 0
+                        ? prod.images[0].url
+                        : null;
                     return (
                       <tr
                         key={prod.id}
@@ -247,12 +230,9 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
                               )}
                             </div>
                             <div className="flex flex-col">
-                              <Link
-                                href={`/store/products/${prod.slug}`}
-                                className="font-medium text-foreground hover:text-primary hover:underline underline-offset-4 transition-colors"
-                              >
+                              <span className="font-medium text-foreground">
                                 {prod.name}
-                              </Link>
+                              </span>
                               <span
                                 className="text-[10px] text-muted-foreground font-mono"
                                 title={prod.id}
@@ -271,16 +251,6 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
                             className="rounded-full text-xs py-0.5 px-2 bg-muted/80 text-muted-foreground border border-border/40"
                           >
                             {prod.category?.name || "Uncategorized"}
-                          </Badge>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <Badge
-                            variant="outline"
-                            className="rounded-full text-xs py-0.5 px-2"
-                          >
-                            {prod.productType === "bundle"
-                              ? "Bundle"
-                              : "Standard"}
                           </Badge>
                         </td>
                         <td className="py-3.5 px-4">
@@ -310,35 +280,19 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
                               )}
                             </Button>
 
+                            {/* Delete Button */}
                             <Button
-                              variant="outline"
+                              variant="destructive"
                               size="icon-sm"
-                              asChild
-                              className="cursor-pointer size-8 rounded-lg border-primary/20 hover:bg-primary/5 hover:text-primary transition-all shrink-0"
-                              title="Edit Product"
-                            >
-                              <Link href={`/admin/products/${prod.id}/edit`}>
-                                <Edit3 className="size-3.5 text-primary" />
-                              </Link>
-                            </Button>
-
-                            {/* Archive Button */}
-                            <Button
-                              variant="outline"
-                              size="icon-sm"
-                              disabled={isPending || prod.status === "archived"}
+                              disabled={isPending}
                               onClick={() => handleDelete(prod.id, prod.name)}
-                              className="cursor-pointer size-8 rounded-lg border-amber-500/30 hover:bg-amber-500/10 text-amber-600 focus:ring-amber-500/30 shrink-0"
-                              title={
-                                prod.status === "archived"
-                                  ? "Already archived"
-                                  : "Archive Product"
-                              }
+                              className="cursor-pointer size-8 rounded-lg hover:bg-destructive/20 text-destructive focus:ring-destructive/30 shrink-0"
+                              title="Delete Product"
                             >
                               {isPending && syncingId !== prod.id ? (
-                                <Loader2 className="size-3.5 animate-spin text-amber-600" />
+                                <Loader2 className="size-3.5 animate-spin text-destructive" />
                               ) : (
-                                <Archive className="size-3.5 text-amber-600" />
+                                <Trash className="size-3.5 text-destructive" />
                               )}
                             </Button>
                           </div>

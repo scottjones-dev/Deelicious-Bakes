@@ -23,39 +23,5 @@ export default async function AdminNewProductPage() {
     allCategories = [uncat];
   }
 
-  const availableVariants = await db.query.productVariants.findMany({
-    columns: {
-      id: true,
-      name: true,
-      price: true,
-    },
-    where: (table, { eq }) => eq(table.disabled, false),
-    with: {
-      product: {
-        columns: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-    orderBy: (table, { asc }) => [asc(table.createdAt)],
-  });
-
-  const allIngredients = await db.query.ingredients.findMany({
-    columns: {
-      id: true,
-      name: true,
-      baseUnit: true,
-      costPerBaseUnit: true,
-    },
-    orderBy: (table, { asc }) => [asc(table.name)],
-  });
-
-  return (
-    <CreateProductForm
-      categories={allCategories}
-      availableVariants={availableVariants}
-      ingredients={allIngredients}
-    />
-  );
+  return <CreateProductForm categories={allCategories} />;
 }

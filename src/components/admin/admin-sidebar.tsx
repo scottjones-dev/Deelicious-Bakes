@@ -3,13 +3,11 @@
 import {
   Cake,
   ChevronsUpDown,
-  FlaskConical,
   LayoutDashboard,
   Loader2,
   LogOut,
   Megaphone,
   MessageSquare,
-  NotebookPen,
   Plus,
   Settings,
   ShoppingBag,
@@ -65,7 +63,6 @@ interface AdminSidebarProps {
     name: string;
     email: string;
     image?: string | null;
-    role: string;
   };
 }
 
@@ -75,6 +72,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { state, isMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
+
   const navigationGroups: NavGroup[] = [
     {
       title: "Overview",
@@ -93,11 +91,6 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           title: "Products",
           href: "/admin/products",
           icon: ShoppingBag,
-        },
-        {
-          title: "Ingredients",
-          href: "/admin/ingredients",
-          icon: FlaskConical,
         },
         {
           title: "Categories",
@@ -157,11 +150,6 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           href: "/admin/settings",
           icon: Settings,
         },
-        {
-          title: "Audit Trail",
-          href: "/admin/audit",
-          icon: NotebookPen,
-        },
       ],
     },
   ];
@@ -206,9 +194,12 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                   <Cake className="h-5 w-5" />
                 </div>
                 {!isCollapsed && (
-                  <div className="flex flex-col gap-0.5 min-w-0">
+                  <div className="flex flex-col gap-0.5 min-w-0 py-8">
                     <span className="font-signature text-2xl text-primary font-bold leading-none select-none">
                       Deelicious Bakes
+                    </span>
+                    <span className="text-[9px] uppercase tracking-[0.15em] font-bold text-muted-foreground select-none leading-none">
+                      Staff Operations
                     </span>
                   </div>
                 )}

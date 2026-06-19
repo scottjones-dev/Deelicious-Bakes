@@ -15,7 +15,6 @@ import { H2, P } from "@/components/ui/typography";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
 import { auth } from "@/lib/auth";
-import { appendAuthCallback } from "@/lib/auth-redirect";
 import { formatPrice } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -46,7 +45,7 @@ export default async function OrdersPage() {
   });
 
   if (!session) {
-    redirect(appendAuthCallback("/sign-in", "/account/orders"));
+    redirect("/sign-in");
   }
 
   const customerRecord = await db.query.customers.findFirst({

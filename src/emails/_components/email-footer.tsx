@@ -7,7 +7,8 @@ interface EmailFooterProps {
 }
 
 export const EmailFooter = ({ unsubscribeUrl }: EmailFooterProps) => {
-  const fallbackUrl = `${env.NEXT_PUBLIC_APP_URL}/account/settings`;
+  // Fallback link pointing to your user profile settings if a specific token link isn't provided
+  const fallbackUrl = `${env.NEXT_PUBLIC_APP_URL}/settings/billing`;
 
   const targetUrl = unsubscribeUrl || fallbackUrl;
 
@@ -34,8 +35,8 @@ export const EmailFooter = ({ unsubscribeUrl }: EmailFooterProps) => {
       <Text
         style={{
           fontFamily: theme.fonts.sans,
-          fontSize: "14px",
-          lineHeight: "24px",
+          fontSize: "13px",
+          lineHeight: "22px",
           color: theme.colors.mutedForeground,
           margin: "0",
           letterSpacing: "0.2px",

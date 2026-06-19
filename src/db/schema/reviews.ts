@@ -5,7 +5,6 @@ import {
   pgEnum,
   pgTable,
   text,
-  timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
 
@@ -43,8 +42,6 @@ export const reviews = pgTable(
     customerName: text("customer_name").notNull(),
     customerEmail: text("customer_email").notNull(),
     status: reviewStatusEnum("status").notNull().default("pending"),
-    adminReply: text("admin_reply"),
-    adminRepliedAt: timestamp("admin_replied_at"),
     ...lifecycleDates,
   },
   (table) => ({

@@ -1,8 +1,6 @@
 "use client";
 
 import { Loader2, MailCheck } from "lucide-react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -18,21 +16,13 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { H3, P } from "@/components/ui/typography";
 import { authClient } from "@/lib/auth-client";
-import { appendAuthCallback, getAuthCallbackPath } from "@/lib/auth-redirect";
 
 export function ForgotPasswordForm({
   ...props
 }: React.ComponentProps<typeof Card>) {
-  const searchParams = useSearchParams();
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [emailSentTo, setEmailSentTo] = useState("");
-  const callbackUrl = getAuthCallbackPath(searchParams);
-  const signInHref = appendAuthCallback("/sign-in", callbackUrl);
-  const resetPasswordRedirectTo = appendAuthCallback(
-    "/reset-password",
-    callbackUrl,
-  );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,7 +33,7 @@ export function ForgotPasswordForm({
 
     const result = await authClient.requestPasswordReset({
       email,
-      redirectTo: resetPasswordRedirectTo,
+      redirectTo: "/reset-password",
     });
 
     setIsPending(false);
@@ -72,8 +62,12 @@ export function ForgotPasswordForm({
               <span className="text-primary font-medium">{emailSentTo}</span>.
             </P>
           </div>
-          <Button asChild variant="outline" className="w-full mt-4">
-            <Link href={signInHref}>Back to Sign In</Link>
+          <Button
+            variant="outline"
+            className="w-full mt-4"
+            onClick={() => (window.location.href = "/sign-in")}
+          >
+            Back to Sign In
           </Button>
         </CardContent>
       </Card>
@@ -119,12 +113,12 @@ export function ForgotPasswordForm({
 
               <P className="text-center text-xs text-muted-foreground">
                 Remembered your password?{" "}
-                <Link
-                  href={signInHref}
+                <a
+                  href="/sign-in"
                   className="text-primary hover:underline font-medium"
                 >
                   Back to sign in
-                </Link>
+                </a>
               </P>
             </div>
           </FieldGroup>
