@@ -6,7 +6,10 @@ interface LobbyLayoutProps
     modal: React.ReactNode;
   }> {}
 
-export default async function LobbyLayout({ children, modal }: LobbyLayoutProps) {
+export default async function LobbyLayout({
+  children,
+  modal,
+}: LobbyLayoutProps) {
   return (
     <div className="relative flex min-h-screen flex-col">
       <SiteHeader />
