@@ -31,7 +31,10 @@ export function CartPageContent() {
           >
             <div className="relative h-24 w-24 overflow-hidden rounded-md bg-muted">
               <Image
-                src={item.productImage ?? "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600"}
+                src={
+                  item.productImage ??
+                  "https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&q=80&w=600"
+                }
                 alt={item.productName}
                 fill
                 sizes="96px"
