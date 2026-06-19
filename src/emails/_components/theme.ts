@@ -1,18 +1,18 @@
 export const theme = {
   colors: {
     // Canvas & Containers
-    background: "#3d1d11", // Gourmet Dark Chocolate
-    card: "#2e150c", // Richer, slightly deeper chocolate for the inner card
+    background: "#f8f3ee",
+    card: "#2f170f",
 
-    // Typography Colors (Elevated for high contrast)
-    foreground: "#faf6f0", // Pure Warm Cream (Makes headers and titles crisp)
-    mutedForeground: "#e3d5ca", // Soft Muted Cream (Makes your body text perfectly readable)
+    // Typography Colors (high contrast for Outlook readability)
+    foreground: "#fff7f1",
+    mutedForeground: "#f4e6d8",
 
     // Accents
-    primary: "#bc7c6c", // Bakery Rose
-    primaryForeground: "#faf6f0",
-    accent: "#d49a6a", // Rich Caramel
-    border: "#4a261b", // Subtle separator
+    primary: "#c98a76",
+    primaryForeground: "#fffaf6",
+    accent: "#e3ad7c",
+    border: "#5c3124",
   },
   fonts: {
     sans: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',

@@ -34,8 +34,8 @@ export const EmailFooter = ({ unsubscribeUrl }: EmailFooterProps) => {
       <Text
         style={{
           fontFamily: theme.fonts.sans,
-          fontSize: "13px",
-          lineHeight: "22px",
+          fontSize: "14px",
+          lineHeight: "24px",
           color: theme.colors.mutedForeground,
           margin: "0",
           letterSpacing: "0.2px",

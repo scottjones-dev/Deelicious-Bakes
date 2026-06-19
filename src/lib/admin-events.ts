@@ -3,6 +3,7 @@ import { db } from "@/db";
 import type { Notification } from "@/db/schema";
 import { auditLogs, notifications } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { sendAdminAlertEmail } from "@/lib/emails";
 
 async function resolveAuditActorId() {
   try {
@@ -38,6 +39,12 @@ export async function createAdminAlertNotification({
       subject,
       status: status ?? "pending",
       errorMessage: message,
+    });
+
+    await sendAdminAlertEmail({
+      subject,
+      message,
+      status: status ?? "pending",
     });
   } catch (error) {
     console.error("Failed to write admin alert notification:", error);

@@ -1,6 +1,10 @@
+import { and, eq } from "drizzle-orm";
 import * as React from "react";
 import { render } from "react-email";
 import { env } from "@/config/env";
+import { db } from "@/db";
+import { user as userTable } from "@/db/schema/auth";
+import AdminAlertEmail from "@/emails/admin-alert";
 import ContactUs from "@/emails/contact-us";
 import OrderPlaced from "@/emails/order-placed";
 import OrderUpdate from "@/emails/order-update";
@@ -57,6 +61,36 @@ interface SendContactUsOptions {
   to: string;
   customerName: string;
   message: string;
+}
+
+interface SendAdminAlertOptions {
+  subject: string;
+  message: string;
+  status?: "pending" | "sent" | "failed" | "delivered";
+}
+
+async function getAdminAlertRecipients() {
+  const dbAdmins = await db
+    .select({ email: userTable.email })
+    .from(userTable)
+    .where(and(eq(userTable.role, "admin"), eq(userTable.banned, false)));
+
+  const configuredList = env.ADMIN_ALERT_EMAILS
+    ? env.ADMIN_ALERT_EMAILS.split(",")
+        .map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0)
+    : [];
+
+  if (env.ADMIN_EMAIL) {
+    configuredList.push(env.ADMIN_EMAIL);
+  }
+
+  const recipients = [
+    ...dbAdmins.map((admin) => admin.email.trim().toLowerCase()),
+    ...configuredList,
+  ];
+
+  return Array.from(new Set(recipients));
 }
 
 /**
@@ -285,6 +319,44 @@ export async function sendContactUsEmail({
     return { success: true, data };
   } catch (error) {
     console.error(`❌ Failed to send contact confirmation to ${to}:`, error);
+    return { success: false, error };
+  }
+}
+
+export async function sendAdminAlertEmail({
+  subject,
+  message,
+  status,
+}: SendAdminAlertOptions) {
+  const recipients = await getAdminAlertRecipients();
+  if (recipients.length === 0) {
+    return {
+      success: false,
+      skipped: true as const,
+      error: "No admin recipient",
+    };
+  }
+
+  try {
+    const html = await render(
+      React.createElement(AdminAlertEmail, {
+        subject,
+        message,
+        status,
+      }),
+    );
+
+    const { data, error } = await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: recipients,
+      subject: `[Admin] ${subject}`,
+      html,
+    });
+
+    if (error) throw new Error(error.message);
+    return { success: true, data };
+  } catch (error) {
+    console.error("❌ Failed to send admin alert email:", error);
     return { success: false, error };
   }
 }
